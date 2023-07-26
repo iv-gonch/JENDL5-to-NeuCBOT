@@ -18,8 +18,11 @@ def main():
 
         if arg == '-graph':
             fname = sys.argv[sys.argv.index(arg)+1]
-            print('Building graph for', fname, file=sys.stdout)
-            plotter.buildGraph(fname)
+            MF = sys.argv[sys.argv.index(arg)+2]
+            MT = sys.argv[sys.argv.index(arg)+3]
+            points = sys.argv[sys.argv.index(arg)+4]
+            print('Building graph of', points, 'points for', fname, 'MF =', MF, 'MT =', MT, file=sys.stdout)
+            plotter.buildGraph(fname, int(MF), int(MT), int(points))
 
         if arg == '-convert':
             fname = sys.argv[sys.argv.index(arg)+1]
@@ -30,8 +33,8 @@ def main():
             fname = sys.argv[sys.argv.index(arg)+1]
             MF = sys.argv[sys.argv.index(arg)+2]
             MT = sys.argv[sys.argv.index(arg)+3]
-            print('Processing data', fname, 'MF =', MF, 'MT =', MT, file=sys.stdout)
-            processor.processData(fname, int(MF), int(MT))
+            print('Writing data for', fname, 'MF =', MF, 'MT =', MT, file=sys.stdout)
+            processor.writeData(fname, int(MF), int(MT))
 
 if __name__ == '__main__':
     main()
