@@ -5,12 +5,13 @@
 
 from __future__ import print_function
 from __future__ import division
+import numpy as np
 import sys
 import os
 
 import constants
 
-def convertENDF(fname):
+def convertENDF(fname): # convert Evaluated Nuclear Data File
 
     word = ['0'] * 10   # слова из необработанного файла
     new_word = word     # обработанные слова, записываемые в новый файл
@@ -53,3 +54,11 @@ def convertENDF(fname):
     f.close()
     f1.close()
 
+
+def convertLine(line):  # convert line
+    word = np.zeros(10, dtype = float)  # каждый элемент строки файла будем записывать в виде float в массив numpy. Изначально всё - вещественны нули
+    if (line[83:85] != ' 0' and line[83:85] != ' 1'):   # отсекаем строки с текстом (те. с MF=' 1' или =' 0', MT=' 451')
+        for i in range(10): # цикл нужен чтобы под float() попали только элементы строки, состоящие из цифр (иначе ошибка)
+            if (line.strip('|').split('|')[i].strip() != ''):   # пустые слова остаются вещественными нулями в word[]
+                word[i] = float(line.strip('|').split('|')[i].strip())  # в конвертированных файлах разделителем является '|' 
+    return word
