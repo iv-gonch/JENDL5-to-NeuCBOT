@@ -56,9 +56,9 @@ def writeData(fname, MF, MT):
                 JP = int(word[constants.ENDF.JPindex])
                 if (JP != 0): print('JP != 0 for', fname)   # проверка на всякий случай
                 LCT = int(word[constants.ENDF.LCTindex])    
-                if (LCT != 2): print('Data given in', fname, 'is not in laboratory system') # проверка системы отсчёта
+                if (LCT != 2): print(fname, 'data is given not in laboratory system') # проверка системы отсчёта
                 NK = int(word[constants.ENDF.NKindex])
-            
+                if (NK > 1): print(fname, 'MF', MF, 'MT', MT, 'contains data of more than one product particle') # проверка количества вылетающих частиц
             if (NS == 2):    # ищем NP. Он всегда на 2й строчке
                 ZAP = int(word[constants.ENDF.ZAPindex])
                 AWP = float(word[constants.ENDF.AWPindex])

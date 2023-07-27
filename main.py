@@ -21,8 +21,9 @@ def main():
             MF = sys.argv[sys.argv.index(arg)+2]
             MT = sys.argv[sys.argv.index(arg)+3]
             points = sys.argv[sys.argv.index(arg)+4]
+            dimension = sys.argv[sys.argv.index(arg)+5]
             print('Building graph of', points, 'points for', fname, 'MF =', MF, 'MT =', MT, file=sys.stdout)
-            plotter.buildGraph(fname, int(MF), int(MT), int(points))
+            plotter.buildGraph(fname, int(MF), int(MT), int(points), int(dimension))
 
         if arg == '-convert':
             fname = sys.argv[sys.argv.index(arg)+1]
