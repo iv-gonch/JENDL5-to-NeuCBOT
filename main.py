@@ -22,7 +22,7 @@ def main():
             MT = sys.argv[sys.argv.index(arg)+3]
             points = sys.argv[sys.argv.index(arg)+4]
             dimension = sys.argv[sys.argv.index(arg)+5]
-            print('Building graph of', points, 'points for', fname, 'MF =', MF, 'MT =', MT, file=sys.stdout)
+            print('Building graph of', points, 'points for', fname, 'MF'+ str(MF), 'MT' + str(MT), file=sys.stdout)
             plotter.buildGraph(fname, int(MF), int(MT), int(points), int(dimension))
 
         if arg == '-convert':
@@ -34,7 +34,7 @@ def main():
             fname = sys.argv[sys.argv.index(arg)+1]
             MF = sys.argv[sys.argv.index(arg)+2]
             MT = sys.argv[sys.argv.index(arg)+3]
-            print('Writing data for', fname, 'MF =', MF, 'MT =', MT, file=sys.stdout)
+            print('Writing data for', fname, 'MF'+ str(MF), 'MT' + str(MT), file=sys.stdout)
             processor.writeData(fname, int(MF), int(MT))
 
 if __name__ == '__main__':
