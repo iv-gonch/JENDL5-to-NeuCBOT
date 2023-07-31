@@ -6,6 +6,7 @@ import sys
 import os
 
 import constants
+import chemistry
 import converter
 import processor
 import polynomials
@@ -14,30 +15,43 @@ import plotter
 # ofile = sys.stdout
     
 def main():
+
     for arg in sys.argv:
 
         if arg == '-graph':
             fname = sys.argv[sys.argv.index(arg)+1]
-            MF = sys.argv[sys.argv.index(arg)+2]
-            MT = sys.argv[sys.argv.index(arg)+3]
-            points = sys.argv[sys.argv.index(arg)+4]
+            MF = int(sys.argv[sys.argv.index(arg)+2])
+            MT = int(sys.argv[sys.argv.index(arg)+3])
+            points = int(sys.argv[sys.argv.index(arg)+4])
             dimension = sys.argv[sys.argv.index(arg)+5]
-            print('Building graph of', points, 'points for', fname, 'MF'+ str(MF), 'MT' + str(MT), file=sys.stdout)
-            plotter.buildGraph(fname, int(MF), int(MT), int(points), int(dimension))
-
+            if (dimension == '2D'):
+                print('Building 2D graphs of', points, 'points for', fname, 'MF'+ str(MF), 'MT' + str(MT), file=sys.stdout)
+                plotter.build2D(fname, MF, MT, points)                
+            if (dimension == '3D'):
+                print('Building 3D graph of', points, 'points for', fname, 'MF'+ str(MF), 'MT' + str(MT), file=sys.stdout)
+                plotter.build3D(fname, MF, MT, points)
+        
         if arg == '-convert':
             fname = sys.argv[sys.argv.index(arg)+1]
             print('Convreting file', fname, file=sys.stdout)
             converter.convertENDF(fname)
 
-        if arg == '-process':
+        if arg == '-reshape':
             fname = sys.argv[sys.argv.index(arg)+1]
-            MF = sys.argv[sys.argv.index(arg)+2]
-            MT = sys.argv[sys.argv.index(arg)+3]
-            print('Writing data for', fname, 'MF'+ str(MF), 'MT' + str(MT), file=sys.stdout)
-            processor.writeData(fname, int(MF), int(MT))
+            MF = int(sys.argv[sys.argv.index(arg)+2])
+            MT = int(sys.argv[sys.argv.index(arg)+3])
+            print('Reshaping data of', fname, 'MF'+ str(MF), 'MT' + str(MT), file=sys.stdout)
+            converter.separateData(fname, MF, MT)
+        
+        if arg == '-spectra':
+            fname = sys.argv[sys.argv.index(arg)+1]
+            MF = int(sys.argv[sys.argv.index(arg)+2])
+            MT = int(sys.argv[sys.argv.index(arg)+3])
+            points = int(sys.argv[sys.argv.index(arg)+4])
+            processor.angle2spectrum(fname, MF, MT, points)
 
 if __name__ == '__main__':
+
     main()
 
     # запускать bash script.sh 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Считывает строки с конкретными MF и MT из конвертированного файла. 
-# Записывает в папку /processed/filename/MF**_MT***/NK**_NE*** функцию p_i(theta) для каждой энергии налетающей альфа частицы
+# Записывает в папку /reshaped/filename/MF**_MT***/NK**_NE*** функцию p_i(theta) для каждой энергии налетающей альфа частицы
 
 from __future__ import print_function
 from __future__ import division
@@ -11,175 +11,137 @@ import math
 import sys
 import os
 
+import plotter
 import constants
+import chemistry
 import converter
 import polynomials
 
 
-def writeData(fname, MF, MT):
+def legendre2angle(Coeff, points, NE):
 
-    if not os.path.isfile('converted/' + fname):    # проверка наличия конвертированного файла
-        print('There is no converted', fname, 'file!', file=sys.stdout)
-        converter.convertENDF(fname)
-    f = open('converted/' + fname)
+    maxNW = len(max(Coeff[:], key=len)) # максимальное количество чисел в файле
+    A = np.zeros((NE, maxNW), dtype = float)    # массив коэффициентов Лежандра
+    P = polynomials.getLegendre(points,maxNW + 1)   # массив значений полиномов Лежандра в точках 
+        # (+1 нужен тк нулеввой член полинома не участвует в формуле из мануала) 
+    C = np.zeros((points, maxNW), dtype = float)# массив произведения A*P для каждой энергии и для каждой точки 
+    S = np.zeros((NE, points), dtype = float)   # массив значений выхода в точках
 
-    f1 = open('converted/' + fname) # тут мы просто открываем любой файл. Потом, в цикле, 
-    # будем открывать нужные файлы, когда узнаем их расположение. (Цикл начинается с закрытия файла, для этого нужна эта строка)
+    for i in range(NE): # для каждой энергии
+        NW = len(Coeff[i])
+        S[i,:] = 0.5
 
-    if not os.path.isdir('processed'):  # проверка наличия директории
-        os.mkdir('processed')
+        for j in range(NW): 
+            A[i,j] = Coeff[i][j]    # A[NE, l]
+
+        for j in range(points): # для каждой точки
+            for k in range(maxNW):
+                C[j, k] = P[j,k+1] * A[i,k] * (2*(k+1) + 1)/2
+                # (k+1 нужен тк так было в формуле из мануала) 
+                S[i,j] += C[j,k]
+
+    return S
+
+
+def normCheck(NE, points, S):
+
+    for i in range(NE):
+        SUMMCHECK = 0.0   # проверка нормировки p_i (mu,E_in) (в мануале сказано, что эта функция нормированна)
+
+        for j in range(points): # для каждой точки
+            SUMMCHECK += S[i,j]*2/(points-1)
+
+        if (abs(SUMMCHECK - 1) > 0.1):
+            print('Warning! This number ' + str(SUMMCHECK) + ' must be equal 1.0\nCheck processor.getEnergyAngleDistribtion()')
+
+
+def getEnergyAngleDistribtion(fname, MF, MT, points, check):
     
-    if not os.path.isdir('processed/' + fname): # проверка наличия директории
-        os.mkdir('processed/' + fname)
+    NK = 1  # есть в названии директории. Отвечает за количество различных вылетющих частц
+    counter = 1 # счётчик по эенргии
+    E_in = []   # массив энергий налетающих альфа частиц
+    Coeff = []  # будущий двумерный массив коэффициентов Лежандра
 
-    if not os.path.isdir('processed/' + fname + '/MF' + str(MF) + '_MT' + str(MT)): # проверка наличия директории
-        os.mkdir('processed/' + fname + '/MF' + str(MF) + '_MT' + str(MT))
+#========= сохраняем данный из файлов в массивы E_in, Coeff,=========#
 
-    NWlineNumber = [0]  # номер подтаблицы (каждая соответствует своей энергии налетающей частицы E_in)
-    tmp = 0     # тк в ENDF таблицы размазанны в строки по 6 элементов, иногда несколько ячеек в строке остаются пустыми.
-                # Эта переменная позволяет не записывать пустые ячейки в память 
-    counter = 0 # счётчик номера NW (всего их NE штук)
-    NP = 0      # нужен чтобы правильно определять номер строки с NE 
-    
-    for line in f.readlines():  # считываем построчно
+    if not os.path.isdir('reshaped/' + fname + '/MF' + str(MF) + '_MT' + str(MT)):  # проверка наличия директории
+        converter.separateData(fname, int(MF), int(MT))
+
+    while (True):   # пока не закончатся файлы в директории /reshaped/fname/MF**_MT***/
         
-        word = converter.convertLine(line)  # разбиваем строку на массив numpy, состоящий из 10 элементов
+        if not os.path.isfile('reshaped/' + fname + '/MF' + str(MF) + '_MT' + str(MT) + '/NK' + str(NK) + '_NE' + str(counter)):    # на будущее, когда будет несколько вылетающих частиц
+            # когда прошли все E_in для нынешнего NK
+            if os.path.isfile('reshaped/' + fname + '/MF' + str(MF) + '_MT' + str(MT) + '/NK' + str(NK) + '_NE' + str(counter)):  
+                NK += 1
+                print(fname, 'MF', MF, 'MT', MT, 'contains data of more than one product particle') # проверка количества вылетающих частиц
+            else:
+                break   # остановиться когда прошли все NK и E_in 
 
-        if (int(word[constants.ENDF.MFindex]) == MF and int(word[constants.ENDF.MTindex]) == MT): # читаем только нужные строчки по MF, MT
-            # ниже просто запоминаем шапку таблицы, может потом пригодится. Вид первых трёх строк всегда одинаков (в MF6 как минимум)
-            # подробнее про смысл констант см. файл constants.py (краткая справка) или ENDF6 formats manual 
-            # https://www-nds.iaea.org/public/endf/endf-manual.pdf
-            NS = int(word[constants.ENDF.NSindex])  # номер текущей строки
-            if (NS == 1):    # ищем NK. Он всегда на 1й строке
-                ZA = int(word[constants.ENDF.ZAindex])
-                AWR = float(word[constants.ENDF.AWRindex])
-                JP = int(word[constants.ENDF.JPindex])
-                if (JP != 0): print('JP != 0 for', fname)   # проверка на всякий случай
-                LCT = int(word[constants.ENDF.LCTindex])    
-                if (LCT != 2): print(fname, 'data is given not in laboratory system') # проверка системы отсчёта
-                NK = int(word[constants.ENDF.NKindex])
-                if (NK > 1): print(fname, 'MF', MF, 'MT', MT, 'contains data of more than one product particle') # проверка количества вылетающих частиц
-            if (NS == 2):    # ищем NP. Он всегда на 2й строчке
-                ZAP = int(word[constants.ENDF.ZAPindex])
-                AWP = float(word[constants.ENDF.AWPindex])
-                if (int(AWP) != 1 or int(ZAP) != 1): print('Product particle is not neutron for', fname)    # проверка на вылетающую частицу
-                LIP = int(word[constants.ENDF.LIPindex])
-                if (LIP != 0): print('LIP != 0 for', fname) # проверка на всякий случай
-                LAW = int(word[constants.ENDF.LAWindex])
-                if (LAW != 2): print('LAW != 2 for', fname) # если LAW!=2, то надо читать мануал и дописывать новый функционал
-                # NR = int(word[constants.ENDF.NRindex])      # встречается ещё один NR. Но оба не используются
-                NP = int(word[constants.ENDF.NPindex])      # нужен чтобы правильно определять номер строки с NE 
-            
-            if (NS == 3): 
-                NBT = int(word[constants.ENDF.NBTindex])    # не уверен что это NBT
-                INT = int(word[constants.ENDF.INTindex])    # не уверен что это INT
-            
-            # if (NS <= 3): # вывод шапки таблицы в консоль
-
-            if (NS == 4 + math.ceil(NP/3)):   # если номер строки таков, то в ней лежит NE (и NR)
-                NE = int(word[constants.ENDF.NEindex])  # записываем чему равно NE
-                NWlineNumber[0] = int(word[constants.ENDF.NSindex] + 2) # записываем в какой строке ожидать следующее значение NW
-
-            if (NS == int(NWlineNumber[counter])): # номер строоки с очередным NW, LANG, E_in (и NL)
-                NWlineNumber.append(NWlineNumber[counter] + math.ceil(int(word[constants.ENDF.NWindex])/6) + 1)
-                # записываем в какой строке ожидать следующее значение NW
-                counter += 1    # счётчик номера E_in 
-                f1.close()  # закрываем файл с предыдущим E_in
-
-                if not os.path.isdir('processed/' + fname + '/MF' + str(MF) + '_MT' + str(MT)):  # проверка наличия директории
-                    os.mkdir ('processed/' + fname + '/MF' + str(MF) + '_MT' + str(MT))
-                f1 = open('processed/' + fname + '/MF' + str(MF) + '_MT' + str(MT) + '/NK' + str(NK) + '_NE' + str(counter), 'w')
-                # создаём и открываем файл на пути /processed/C13/MF6_MT50/NK1_NE47 (например)
-                f1.write('MF = ' + str(MF) + '\tMT = ' + str(MT) +'\nEmitted particle ZAP code = ' + str(ZAP) + '\nAmount of files in directory for this type of particle: ' + str(NE) + '\n')
-                # записываем MF, MT и число табличек с разными энергиями влетающих частиц E_in
-                f1.write('\nIncident particle energy (eV) = \n' + str(word[constants.ENDF.IncidentEnergyindex]) + '\n\nAmount of points in this file: ' + str(int(word[constants.ENDF.NWindex])) + '\n')
-                # записываем E_in и число точек
-
-                if (int(word[constants.ENDF.LANGindex]) != 0):  # если LANG!=0, то надо читать мануал и дописывать код
-                    print('LANG != 0 for', fname, 'line', NS)
-
-                tmp = int(word[constants.ENDF.NWindex]) # счётчик количества точек для конкретного E_in
-
-            if (counter > 0 and NS > NWlineNumber[counter-1]):
-                for i in range(6):
-                    if(i < tmp):    # чтобы не выводить нули из строки, которые являются не значениями, а символами пустых ячеек                      
-                        f1.write(str(word[i]) + '\n')   # записываем в файл экспериментальное значение без изменений
-                tmp -= 6    # строка прошла, значит количество оставшихся значений уменьшилось на 6            
-    f.close()
-
-
-# def giveData(fname, MF, MT):    # попытка считать данные без создания кучи записей 
-# # (провалилась из-за того, что длина подтабличек может быть разной (для каждой E_in своё NW))
-# # массивы numpy не динамические, поэтому без двойного считывания файла не обойтись.
-# # использовать динамические массивы питона не пробовал, но это родит ряд новых проблем
-
-#     if not os.path.isfile('converted/' + fname):    # проверка наличия конвертированного файла
-#         print('There is no converted', fname, 'file!', file=sys.stdout)
-#         converter.convertENDF(fname)
-#     f = open('converted/' + fname)
-
-#     NWlineNumber = [0]  # номер подтаблицы (каждая соответствует своей энергии налетающей частицы E_in)
-#     tmp = 0     # тк в ENDF таблицы размазанны в строки по 6 элементов, иногда несколько ячеек в строке остаются пустыми.
-#                 # Эта переменная позволяет не записывать пустые ячейки в память 
-#     counter = 0 # счётчик номера NW (всего их NE штук)
-#     NP = 0      # нужен чтобы правильно определять номер строки с NE 
-    
-#     for line in f.readlines():  # считываем построчно
+        f = open('reshaped/' + fname + '/MF' + str(MF) + '_MT' + str(MT) + '/NK' + str(NK) + '_NE' + str(counter), 'r')
+        NS = 0  # номер строки в файле
         
-#         word = converter.convertLine(line)
+        for line in f.readlines():  # считываем построчно
+            if (NS == 6):   # строка, где записана энергия влетающей альфа-частицы
+                E_in.append(float(line))    # записываем энергию альфа частицы
+                Coeff.append([])    # создаём место для записи коэффициентов Лежандра
 
-#         if (int(word[constants.ENDF.MFindex]) == MF and int(word[constants.ENDF.MTindex]) == MT): # читаем только нужные строчки по MF, MT
-#             # ниже просто запоминаем шапку таблицы, может потом пригодится. Вид первых трёх строк всегда одинаков (в MF6 как минимум)
-#             # подробнее про смысл констант см. файл constants.py (краткая справка) или ENDF6 formats manual 
-#             # https://www-nds.iaea.org/public/endf/endf-manual.pdf
-#             NS = int(word[constants.ENDF.NSindex])  # номер текущей строки
-#             if (NS == 1):    # ищем NK. Он всегда на 1й строке
-#                 ZA = int(word[constants.ENDF.ZAindex])
-#                 AWR = float(word[constants.ENDF.AWRindex])
-#                 JP = int(word[constants.ENDF.JPindex])
-#                 if (JP != 0): print('JP != 0 for', fname)   # проверка на всякий случай
-#                 LCT = int(word[constants.ENDF.LCTindex])    
-#                 if (LCT != 2): print('Data given in', fname, 'is not in laboratory system') # проверка системы отсчёта
-#                 NK = int(word[constants.ENDF.NKindex])
-            
-#             if (NS == 2):    # ищем NP. Он всегда на 2й строчке
-#                 ZAP = int(word[constants.ENDF.ZAPindex])
-#                 AWP = float(word[constants.ENDF.AWPindex])
-#                 if (int(AWP) != 1 or int(ZAP) != 1): print('Product particle is not neutron for', fname)    # проверка на вылетающую частицу
-#                 LIP = int(word[constants.ENDF.LIPindex])
-#                 if (LIP != 0): print('LIP != 0 for', fname) # проверка на всякий случай
-#                 LAW = int(word[constants.ENDF.LAWindex])
-#                 if (LAW != 2): print('LAW != 2 for', fname) # если LAW!=2, то надо читать мануал и дописывать новый функционал
-#                 # NR = int(word[constants.ENDF.NRindex])      # встречается ещё один NR. Но оба не используются
-#                 NP = int(word[constants.ENDF.NPindex])      # нужен чтобы правильно определять номер строки с NE 
-            
-#             if (NS == 3): 
-#                 NBT = int(word[constants.ENDF.NBTindex])    # не уверен что это NBT
-#                 INT = int(word[constants.ENDF.INTindex])    # не уверен что это INT
-            
-#             # if (NS <= 3): # вывод шапки таблицы в консоль
+            if (NS > 8 and line != ''):    # строки, где хранятся коэффициенты Лежандра 
+                Coeff[counter-1].append(float(line))
 
-#             if (NS == 4 + math.ceil(NP/3)):   # если номер строки таков, то в ней лежит NE (и NR)
-#                 NE = int(word[constants.ENDF.NEindex])  # записываем чему равно NE
-#                 NWlineNumber[0] = int(word[constants.ENDF.NSindex] + 2) # записываем в какой строке ожидать следующее значение NW
+            NS += 1
 
-#             if (NS == int(NWlineNumber[counter])): # номер строоки с очередным NW, LANG, E_in (и NL)
-#                 NWlineNumber.append(NWlineNumber[counter] + math.ceil(int(word[constants.ENDF.NWindex])/6) + 1)
-#                 # записываем в какой строке ожидать следующее значение NW
-#                 counter += 1    # счётчик номера E_in 
-#                 if (counter == 1):
-#                     A = np.zeros((int(word[constants.ENDF.NWindex]), NE), dtype = float)
-#                 if (int(word[constants.ENDF.LANGindex]) != 0):  # если LANG!=0, то надо читать мануал и дописывать код
-#                     print('LANG != 0 for', fname, 'line', NS)
-#                 tmp = int(word[constants.ENDF.NWindex]) # счётчик количества точек для конкретного E_in
+        counter += 1
 
-#             if (counter != 0 and NS != NWlineNumber[counter-1]):
-#                 # не заходим в цикл если ещё не считали ни одного NW (counter=!=0)
-#                 # и если мы ещё не прошли строку, в которой нынешний MW считывается (NS != NWlineNumber[counter-1])
-#                 for i in range(6):
-#                     if(i < tmp):    # чтобы не выводить нули из строки, которые являются не значениями, а символами пустых ячеек                      
-#                         A[(NS - NWlineNumber[counter-1]-1)*6 + i][counter-1] = word[i]
-#                 tmp -= 6    # строка прошла, значит количество оставшихся значений уменьшилось на 6     
+#========= вычисляем и записываем значение угла (через коэффициенты Лежандра) =========#
 
-#     f.close()
-#     return A
+    if (len(Coeff[:]) == 0):    #  если в файле нет данных 
+        print('\n' + fname, 'MF'+ str(MF), 'MT' + str(MT), 'has no Legenge coefficients!\n')
+        NK, NE, E_in, S, isData = 0, 0, [], [], False
+
+    else:
+        NE = len(Coeff) # число различных энергий налетающей альфа-частицы 
+        S = legendre2angle(Coeff, points, NE)   # вычисляем углы из Лежандра 
+        isData = True
+        
+#============ проверка вычислений ============# 0.15202460931963135 - самое обольшое отклонение от 1.0 для C12 MF6 MT50
+        if check:
+            normCheck(NE, points, S)
+
+#============ выводим кортеж значений для графиков ============# 
+
+    return NK, NE, E_in, S, isData  # можно не возвращать NE тк это длина E_in. Но надо переписать много где
+
+
+def angle2spectrum(fname, MF, MT, points):# из распределения theta_neutron(E_alpha) получаем зависимость E_neutron(E_alpha) по кинематической формуле без учёта релятивизма
+    
+    NK, NE, E_in, S, isData = getEnergyAngleDistribtion(fname, MF, MT, points, check = False)
+
+    if (isData):  # проверка на наличие данных для вычисления спектра
+
+        ele = fname.split('_')[0]
+        Z = int(chemistry.getZ(ele))
+        A = int(fname.split('_')[1])
+
+        ZA_in = Z*1000 + A
+        mass_in = chemistry.getMass(ZA_in)
+
+        mass_a = chemistry.getMass(2004)
+
+        ZA_out = (Z+2)*1000 + (A+1)
+        mass_out = chemistry.getMass(ZA_out)
+
+        mass_n = chemistry.getMass(1)
+
+        Q = mass_in + mass_a - mass_out - mass_n
+
+        E_n = np.zeros(points)
+        E_a = np.zeros(NE)
+        cos_THeta = np.linspace(-1, 1, points)
+
+        for i in range(NE): # для каждой энергии
+            E_a[i] = E_in[i]
+
+            longLine = mass_a*mass_n*E_in[i] * (mass_n + mass_out) * (mass_a*E_in[i] - mass_out*Q - mass_out*E_in[i])
+
+            for j in range(points): 
+                E_n[i] = (2*mass_a*mass_n*E_a[i]*cos_THeta[j]**2 - longLine + 2*cos_THeta[j] * np.sqrt( (mass_a*mass_n*E_a[i]*cos_THeta[j])**2 - longLine))/(mass_n + mass_out)**2
