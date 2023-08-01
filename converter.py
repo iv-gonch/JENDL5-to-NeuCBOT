@@ -142,8 +142,11 @@ def separateData(fname, MF, MT):   # считывает из ./converted, зап
                 counter += 1    # счётчик номера E_in 
                 f1.close()  # закрываем файл с предыдущим E_in
             
-                if not os.path.isdir('reshaped/' + fname + '/MF' + str(MF) + '_MT' + str(MT)):  # проверка наличия директории
-                    os.mkdir ('reshaped/' + fname + '/MF' + str(MF) + '_MT' + str(MT))
+
+                # if not os.path.isdir('reshaped/' + fname + '/MF' + str(MF) + '_MT' + str(MT)):  # не нужно. (но надо проверить на всякий)
+                    # os.mkdir('reshaped/' + fname + '/MF' + str(MF) + '_MT' + str(MT)) 
+
+
                 f1 = open('reshaped/' + fname + '/MF' + str(MF) + '_MT' + str(MT) + '/NK' + str(NK) + '_NE' + str(counter), 'w')
                 # создаём и открываем файл на пути /reshaped/C13/MF6_MT50/NK1_NE47 (например)
 

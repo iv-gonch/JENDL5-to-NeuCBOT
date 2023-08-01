@@ -25,7 +25,7 @@ def legendre2angle(Coeff, points, NE):
     P = polynomials.getLegendre(points,maxNW + 1)   # массив значений полиномов Лежандра в точках 
         # (+1 нужен тк нулеввой член полинома не участвует в формуле из мануала) 
     C = np.zeros((points, maxNW), dtype = float)# массив произведения A*P для каждой энергии и для каждой точки 
-    S = np.zeros((NE, points), dtype = float)   # массив значений выхода в точках
+    S = np.zeros((NE, points), dtype = float)   # массив значений выхода в точках. В мауале это p_i[E_in, cos(mu)]
 
     for i in range(NE): # для каждой энергии
         NW = len(Coeff[i])
@@ -49,9 +49,9 @@ def normCheck(NE, points, S):
         SUMMCHECK = 0.0   # проверка нормировки p_i (mu,E_in) (в мануале сказано, что эта функция нормированна)
 
         for j in range(points): # для каждой точки
-            SUMMCHECK += S[i,j]*2/(points-1)
+            SUMMCHECK += S[i,j]*2/(points)    # мб не надо тут единицу вычитать
 
-        if (abs(SUMMCHECK - 1) > 0.1):
+        if (abs(SUMMCHECK - 1) > 0.01):
             print('Warning! This number ' + str(SUMMCHECK) + ' must be equal 1.0\nCheck processor.getEnergyAngleDistribtion()')
 
 
@@ -117,31 +117,71 @@ def angle2spectrum(fname, MF, MT, points):# из распределения thet
     NK, NE, E_in, S, isData = getEnergyAngleDistribtion(fname, MF, MT, points, check = False)
 
     if (isData):  # проверка на наличие данных для вычисления спектра
+        
+
+        if not os.path.isdir('spectra'):  # проверка наличия директории
+            os.mkdir('spectra')
+        if not os.path.isdir('spectra/' + fname): # проверка наличия директории
+            os.mkdir('spectra/' + fname)
+        if not os.path.isdir('spectra/' + fname + '/MF' + str(MF) + '_MT' + str(MT)): # проверка наличия директории
+            os.mkdir('spectra/' + fname + '/MF' + str(MF) + '_MT' + str(MT))
+
 
         ele = fname.split('_')[0]
         Z = int(chemistry.getZ(ele))
         A = int(fname.split('_')[1])
 
-        ZA_in = Z*1000 + A
-        mass_in = chemistry.getMass(ZA_in)
-
-        mass_a = chemistry.getMass(2004)
+        ZA_in = Z*1000 + A  
+        In = chemistry.getMass(ZA_in)
 
         ZA_out = (Z+2)*1000 + (A+1)
-        mass_out = chemistry.getMass(ZA_out)
+        Out = chemistry.getMass(ZA_out)
 
-        mass_n = chemistry.getMass(1)
+        a = chemistry.getMass(2004)
+        n = chemistry.getMass(1)
 
-        Q = mass_in + mass_a - mass_out - mass_n
+        Q = In + a - Out - n
 
-        E_n = np.zeros(points)
-        E_a = np.zeros(NE)
-        cos_THeta = np.linspace(-1, 1, points)
+        E_n = np.zeros((NE, points), dtype=float)
+        E_a = np.zeros(NE, dtype=float)
+        cos_Theta = np.linspace(-1, 1, points)
 
         for i in range(NE): # для каждой энергии
+
+            f1 = open('spectra/' + fname + '/MF' + str(MF) + '_MT' + str(MT) + '/NK' + str(NK) + '_NE' + str(i), 'w')
+
             E_a[i] = E_in[i]
 
-            longLine = mass_a*mass_n*E_in[i] * (mass_n + mass_out) * (mass_a*E_in[i] - mass_out*Q - mass_out*E_in[i])
+            f1.write('Incident particle energy (eV) = \n' + str(E_a[i]) + '\n\ncos(theta)\tE_n (eV) \n')
 
+            # longLine = mass_a*mass_n*E_in[i] * (mass_n + mass_out) * (mass_a*E_in[i] - mass_out*Q - mass_out*E_in[i])
+            longLine = (n+Out) * ( Out*(Q+E_a[i]) - a*E_a[i])
+            
             for j in range(points): 
-                E_n[i] = (2*mass_a*mass_n*E_a[i]*cos_THeta[j]**2 - longLine + 2*cos_THeta[j] * np.sqrt( (mass_a*mass_n*E_a[i]*cos_THeta[j])**2 - longLine))/(mass_n + mass_out)**2
+                
+                shortLine = 2.* a * E_a[i] * n * cos_Theta[j]**2.
+                if (cos_Theta[j] > 0.):
+                    E_n[i,j] = (shortLine + longLine + math.sqrt(shortLine**2. + 2. * shortLine * longLine) ) / (n+Out)**2.
+                else:
+                    E_n[i,j] = (shortLine + longLine - math.sqrt(shortLine**2. + 2. * shortLine * longLine) ) / (n+Out)**2.      
+                if (cos_Theta[j] >= 0): f1.write(' ')
+                f1.write(str( "{:.7f}".format(cos_Theta[j]) ) + '\t' + str(E_n[i,j]) + '\n')
+            
+            f1.close()
+        
+        return E_n
+    
+
+def EnSpectra(fname, MF, MT, points):
+
+    E_n = angle2spectrum(fname, MF, MT, points)
+    NK, NE, E_in, S, isData = getEnergyAngleDistribtion(fname, MF, MT, points, check=True)
+
+    newArray = np.zeros_like(E_n)  # создаём массив по форме как E_n, но состящий из нулей.
+    maxofmaxE_n = np.max(E_n)
+
+    for i in range(NE):
+        maxE_n = np.max(E_n[i])
+        j = 0
+        for j in range(points):
+            newArray[i, j] = 4
