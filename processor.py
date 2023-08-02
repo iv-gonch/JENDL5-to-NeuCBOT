@@ -21,10 +21,9 @@ import polynomials
 def legendre2angle(Coeff, points, NE):
 
     maxNW = len(max(Coeff[:], key=len)) # максимальное количество чисел в файле
-    A = np.zeros((NE, maxNW), dtype = float)    # массив коэффициентов Лежандра
+    A = np.zeros((NE, maxNW+1), dtype = float)    # массив коэффициентов Лежандра
     P = polynomials.getLegendre(points,maxNW + 1)   # массив значений полиномов Лежандра в точках 
         # (+1 нужен тк нулеввой член полинома не участвует в формуле из мануала) 
-    C = np.zeros((points, maxNW), dtype = float)# массив произведения A*P для каждой энергии и для каждой точки 
     S = np.zeros((NE, points), dtype = float)   # массив значений выхода в точках. В мауале это p_i[E_in, cos(mu)]
 
     for i in range(NE): # для каждой энергии
@@ -36,9 +35,8 @@ def legendre2angle(Coeff, points, NE):
 
         for j in range(points): # для каждой точки
             for k in range(maxNW):
-                C[j, k] = P[j,k+1] * A[i,k] * (2*(k+1) + 1)/2
-                # (k+1 нужен тк так было в формуле из мануала) 
-                S[i,j] += C[j,k]
+                #C[j, k]= P[j,k+1] * A[i,k] * (2*(k+1) + 1)/2   
+                S[i,j] += P[j,k+1] * A[i,k] * (2*(k+1) + 1)/2     # (k+1 нужен тк в формуле из мануала сумма начинается с k = 1) 
 
     return S
 
@@ -49,7 +47,7 @@ def normCheck(NE, points, S):
         SUMMCHECK = 0.0   # проверка нормировки p_i (mu,E_in) (в мануале сказано, что эта функция нормированна)
 
         for j in range(points): # для каждой точки
-            SUMMCHECK += S[i,j]*2/(points)    # мб не надо тут единицу вычитать
+            SUMMCHECK += S[i,j]*2/(points-1)    # мб не надо тут единицу вычитать (points vs points-1)
 
         if (abs(SUMMCHECK - 1) > 0.01):
             print('Warning! This number ' + str(SUMMCHECK) + ' must be equal 1.0\nCheck processor.getEnergyAngleDistribtion()')
@@ -95,7 +93,7 @@ def getEnergyAngleDistribtion(fname, MF, MT, points, check):
 #========= вычисляем и записываем значение угла (через коэффициенты Лежандра) =========#
 
     if (len(Coeff[:]) == 0):    #  если в файле нет данных 
-        print('\n' + fname, 'MF'+ str(MF), 'MT' + str(MT), 'has no Legenge coefficients!\n')
+        print('\n' + fname, 'MF'+ str(MF), 'MT' + str(MT), 'has no Legendre coefficients!\n')
         NK, NE, E_in, S, isData = 0, 0, [], [], False
 
     else:
@@ -110,6 +108,8 @@ def getEnergyAngleDistribtion(fname, MF, MT, points, check):
 #============ выводим кортеж значений для графиков ============# 
 
     return NK, NE, E_in, S, isData  # можно не возвращать NE тк это длина E_in. Но надо переписать много где
+
+
 
 
 def angle2spectrum(fname, MF, MT, points):# из распределения theta_neutron(E_alpha) получаем зависимость E_neutron(E_alpha) по кинематической формуле без учёта релятивизма
@@ -152,7 +152,7 @@ def angle2spectrum(fname, MF, MT, points):# из распределения thet
 
             E_a[i] = E_in[i]
 
-            f1.write('Incident particle energy (eV) = \n' + str(E_a[i]) + '\n\ncos(theta)\tE_n (eV) \n')
+            f1.write('Incident particle energy (eV) = \n' + str(E_in[i]) + '\n\ncos(theta)\tE_n, eV\t\t\tyield\n')
 
             # longLine = mass_a*mass_n*E_in[i] * (mass_n + mass_out) * (mass_a*E_in[i] - mass_out*Q - mass_out*E_in[i])
             longLine = (n+Out) * ( Out*(Q+E_a[i]) - a*E_a[i])
@@ -165,23 +165,36 @@ def angle2spectrum(fname, MF, MT, points):# из распределения thet
                 else:
                     E_n[i,j] = (shortLine + longLine - math.sqrt(shortLine**2. + 2. * shortLine * longLine) ) / (n+Out)**2.      
                 if (cos_Theta[j] >= 0): f1.write(' ')
-                f1.write(str( "{:.7f}".format(cos_Theta[j]) ) + '\t' + str(E_n[i,j]) + '\n')
+                f1.write(str( "{:.7f}".format(cos_Theta[j]) ) + '\t' + str( "{:.7f}".format(E_n[i,j]) ) + '\t' + str( "{:.7f}".format( S[i, j]) ) + '\n')
             
             f1.close()
-        
-        return E_n
+
+        return cos_Theta, E_n, S, isData
     
 
-def EnSpectra(fname, MF, MT, points):
+# def EnSpectra(fname, MF, MT, points):
 
-    E_n = angle2spectrum(fname, MF, MT, points)
-    NK, NE, E_in, S, isData = getEnergyAngleDistribtion(fname, MF, MT, points, check=True)
+#     E_n = angle2spectrum(fname, MF, MT, points)
+#     NK, NE, E_in, S, isData = getEnergyAngleDistribtion(fname, MF, MT, points, check=False)
 
-    newArray = np.zeros_like(E_n)  # создаём массив по форме как E_n, но состящий из нулей.
-    maxofmaxE_n = np.max(E_n)
+#     newArray = np.zeros((NE, points, 3), dtype=float)  # создаём массив по форме как E_n, но состящий из нулей.
+#     cos_Theta = np.linspace(-1, 1, points)
+#     maxofmaxE_n = np.max(E_n)
 
-    for i in range(NE):
-        maxE_n = np.max(E_n[i])
-        j = 0
-        for j in range(points):
-            newArray[i, j] = 4
+#     if not os.path.isdir('E_n spectra'):  # проверка наличия директории
+#         os.mkdir('E_n spectra')
+#     if not os.path.isdir('E_n spectra/' + fname): # проверка наличия директории
+#         os.mkdir('E_n spectra/' + fname)
+#     if not os.path.isdir('E_n spectra/' + fname + '/MF' + str(MF) + '_MT' + str(MT)): # проверка наличия директории
+#         os.mkdir('E_n spectra/' + fname + '/MF' + str(MF) + '_MT' + str(MT))
+
+#     for i in range(NE):
+#         maxE_n = np.max(E_n[i])
+#         f1 = open('E_n spectra/' + fname + '/MF' + str(MF) + '_MT' + str(MT) + '/NK' + str(NK) + '_NE' + str(i), 'w')
+#         f1.write('Incident particle energy (eV) = \n' + str(E_in[i]) + '\n\ncos(theta)\tE_n, eV\t\tyield\n')
+#         for j in range(points):
+#             newArray[i, j, 0] = cos_Theta[j]
+#             newArray[i, j, 1] = E_n[i, j]
+#             newArray[i, j, 2] = S[i, j]
+#             f1.write(str( "{:.7f}".format(newArray[i, j, 0]) ) + '\t' + str( "{:.5f}".format(newArray[i, j, 1]) ) + '\t' + str( "{:.7f}".format(newArray[i, j, 2]) ) + '\n')
+#         f1.close()
