@@ -81,48 +81,243 @@ echo "Start!"
 # python3 ./main.py -reshape Si_29 6 50 &
 
 # python3 ./main.py -reshape Si_30 6 50 &
+
+# # ================Построить спектры======================================
+
+# echo "making E_n spectra..."
+
+# python3 ./main.py -spectra Al_27 6 50 101 &
+
+# python3 ./main.py -spectra B_10 6 50 101 &
+
+# python3 ./main.py -spectra B_11 6 50 101 &
+
+# python3 ./main.py -spectra Be_9 6 50 101 &
+
+# python3 ./main.py -spectra C_12 6 50 101 &
+
+# python3 ./main.py -spectra C_13 6 50 101 &
+
+# python3 ./main.py -spectra F_19 6 50 101 &
+
+# python3 ./main.py -spectra Li_6 6 50 101 &
+
+# python3 ./main.py -spectra Li_7 6 50 101 &
+
+# python3 ./main.py -spectra N_14 6 50 101 &
+
+# python3 ./main.py -spectra N_15 6 50 101 &
+
+# python3 ./main.py -spectra Na_23 6 50 101 &
+
+# python3 ./main.py -spectra O_16 6 50 101 &
+
+# python3 ./main.py -spectra O_17 6 50 101 &
+
+# python3 ./main.py -spectra O_18 6 50 101 &
+
+# python3 ./main.py -spectra Si_28 6 50 101 &
+
+# python3 ./main.py -spectra Si_29 6 50 101 &
+
+# python3 ./main.py -spectra Si_30 6 50 101 &
                  
 # # ================Построить графики======================================
 # # пример: python3 ./main.py -graph fname MF_ MT points dimension
 
 echo "graphing..."
 
-python3 ./main.py -graph Al_27 6 50 10 3D &
+# python3 ./main.py -graph Al_27 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph B_10 6 50 10 3D &
+# python3 ./main.py -graph B_10 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph B_11 6 50 10 3D &
+# python3 ./main.py -graph B_11 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph Be_9 6 50 10 3D &
+# python3 ./main.py -graph Be_9 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph C_12 6 50 10 3D &
+# python3 ./main.py -graph C_12 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph C_13 6 50 10 3D &
+# python3 ./main.py -graph C_13 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph F_19 6 50 10 3D &
+# python3 ./main.py -graph F_19 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph Li_6 6 50 10 3D &
+# python3 ./main.py -graph Li_6 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph Li_7 6 50 10 3D &
+# python3 ./main.py -graph Li_7 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph N_14 6 50 10 3D &
+# python3 ./main.py -graph N_14 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph N_15 6 50 10 3D &
+# python3 ./main.py -graph N_15 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph Na_23 6 50 10 3D &
+# python3 ./main.py -graph Na_23 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph O_16 6 50 10 3D &
+# python3 ./main.py -graph O_16 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph O_17 6 50 10 3D &
+# python3 ./main.py -graph O_17 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph O_18 6 50 10 3D &
+# python3 ./main.py -graph O_18 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph Si_28 6 50 10 3D &
+# python3 ./main.py -graph Si_28 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph Si_29 6 50 10 3D &
+# python3 ./main.py -graph Si_29 6 50 101 3D angle_distribution &
 
-python3 ./main.py -graph Si_30 6 50 10 3D &
+# python3 ./main.py -graph Si_30 6 50 101 3D angle_distribution &
+
+# # # # =======================================================================
+
+python3 ./main.py -graph Al_27 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph B_10 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph B_11 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph Be_9 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph C_12 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph C_13 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph F_19 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph Li_6 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph Li_7 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph N_14 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph N_15 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph Na_23 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph O_16 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph O_17 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph O_18 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph Si_28 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph Si_29 6 50 101 3D neutron_spectra &
+
+python3 ./main.py -graph Si_30 6 50 101 3D neutron_spectra &
+
+# # # =======================================================================
+
+# python3 ./main.py -graph Al_27 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph B_10 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph B_11 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph Be_9 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph C_12 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph C_13 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph F_19 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph Li_6 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph Li_7 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph N_14 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph N_15 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph Na_23 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph O_16 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph O_17 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph O_18 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph Si_28 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph Si_29 6 50 101 3D kinematics &
+
+# python3 ./main.py -graph Si_30 6 50 101 3D kinematics &
 
 # # =======================================================================
+# # =======================================================================
+
+
+# python3 ./main.py -graph Al_27 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph B_10 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph B_11 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph Be_9 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph C_12 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph C_13 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph F_19 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph Li_6 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph Li_7 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph N_14 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph N_15 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph Na_23 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph O_16 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph O_17 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph O_18 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph Si_28 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph Si_29 6 50 101 2D angle_distribution &
+
+# python3 ./main.py -graph Si_30 6 50 101 2D angle_distribution &
+
+# # # =======================================================================
+
+# python3 ./main.py -graph Al_27 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph B_10 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph B_11 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph Be_9 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph C_12 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph C_13 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph F_19 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph Li_6 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph Li_7 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph N_14 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph N_15 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph Na_23 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph O_16 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph O_17 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph O_18 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph Si_28 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph Si_29 6 50 101 2D neutron_spectra &
+
+# python3 ./main.py -graph Si_30 6 50 101 2D neutron_spectra &
+
+# # # =======================================================================
+
 
 echo "Done!"
