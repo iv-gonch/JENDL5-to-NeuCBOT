@@ -36,19 +36,44 @@ def build3D(fname, MF, MT, points, graphType):
             zlabel = 'p_i(Ea, En)'
             ax = plt.figure().add_subplot(projection='3d')
 
-            a = np.zeros((NE, points+4), dtype=float)
-            y = np.zeros((NE, points+4), dtype=float)
+            # a = np.zeros((NE, points+4), dtype=float)
+            # y = np.zeros((NE, points+4), dtype=float)
+
+            # # a = np.zeros((NE, points+2), dtype=float)
+            # # y = np.zeros((NE, points+2), dtype=float)
+
+            a = np.zeros((NE, points), dtype=float)
+            y = np.zeros((NE, points), dtype=float)
 
             for i in range(NE):
-                a[i,0] = 0
-                a[i,1] = E_n[i,0]
-                a[i,-2] = E_n[i,-1]
-                a[i,-1] = np.max(E_in)
-                for j in range(points):
-                    a[i, j+2] = E_n[i,j]
-                    y[i, j+2] = np.log10(S[i,j])
 
-                ax.plot(a[i], y[i], zs=E_in[i], zdir='x', color = 'black', linewidth = 0.5)
+                # a[i,0] = 0
+                # a[i,1] = E_n[i,0]
+                # a[i,-2] = E_n[i,-1]
+                # a[i,-1] = np.max(E_in)
+
+                # # a[i,0] = E_n[i,0]
+                # # a[i,-1] = E_n[i,-1]
+
+                SUMM = 0.
+                SUMMCHECK = 0.
+
+                for j in range(points-1):
+                    SUMM += 0.5*(S[i,j] + S[i, j+1])*(E_n[i,j+1] - E_n[i,j])
+
+                for j in range(points):
+                    # a[i, j+2] = E_n[i,j]
+                    # y[i, j+2] = S[i,j]
+
+                    # # a[i, j+1] = E_n[i,j]
+                    # # y[i, j+1] = S[i,j]
+
+                    a[i,j] = E_n[i,j]
+                    y[i,j] = S[i,j]
+                    # y[i,j] = 1000000*S[i,j]/SUMM
+
+                if (E_in[i] >= 2500000):
+                    ax.plot(a[i], y[i], zs=E_in[i], zdir='x', color = 'black', linewidth = 0.5)
 
             if not os.path.isdir('graphs3D/'):  # проверка наличия директории
                 os.mkdir('graphs3D/')    
@@ -60,9 +85,9 @@ def build3D(fname, MF, MT, points, graphType):
                 os.mkdir('graphs3D/' + folderName + fname + '/MF' +  str(MF) + '_MT' + str(MT))
 
             ax.text2D(0.05, 0.95, fname + ' MF' + str(MF) + ' MT' + str(MT), transform=ax.transAxes)
-            ax.set_xlim(0, np.max(E_in))    
-            ax.set_ylim(0, np.max(E_n))
-            ax.set_zlim(0, np.max(S))
+            ax.set_xlim(0, 15e7)    
+            ax.set_ylim(0, np.max(a))
+            ax.set_zlim(0, 1)
             ax.set_xlabel('Ea, eV')
             ax.set_ylabel(ylabel)
             ax.set_zlabel(zlabel)
