@@ -21,22 +21,22 @@ import polynomials
 def legendre2angle(Coeff, points, NE):
 
     maxNW = len(max(Coeff[:], key=len)) # максимальное количество чисел в файле
+
     A = np.zeros((NE, maxNW+1), dtype = float)    # массив коэффициентов Лежандра
     P = polynomials.getLegendre(points,maxNW + 1)   # массив значений полиномов Лежандра в точках 
         # (+1 нужен тк нулеввой член полинома не участвует в формуле из мануала) 
-    S = np.zeros((NE, points), dtype = float)   # массив значений выхода в точках. В мауале это p_i[E_in, cos(mu)]
+    S = np.ones((NE, points), dtype = float)   # массив значений выхода в точках. В мауале это p_i[E_in, cos(mu)]
+    S /= 2.
 
     for i in range(NE): # для каждой энергии
         NW = len(Coeff[i])
-        S[i,:] = 0.5
 
         for j in range(NW): 
-            A[i,j] = Coeff[i][j]    # A[NE, l]
+            A[i,j] = Coeff[i][j]    # A[NE, l] просто ради массива numpy
 
         for j in range(points): # для каждой точки
-            for k in range(maxNW):
-                #C[j, k]= P[j,k+1] * A[i,k] * (2*(k+1) + 1)/2   
-                S[i,j] += P[j,k+1] * A[i,k] * (2*(k+1) + 1)/2     # (k+1 нужен тк в формуле из мануала сумма начинается с k = 1) 
+            for l in range(maxNW):
+                S[i,j] += P[j,l+1] * A[i,l] * (2*(l+1) + 1)/2     # (l+1 нужен тк в формуле из мануала сумма начинается с l = 1) 
 
     return S
 
@@ -46,8 +46,8 @@ def normCheck(NE, points, S):
     for i in range(NE):
         SUMMCHECK = 0.0   # проверка нормировки p_i (mu,E_in) (в мануале сказано, что эта функция нормированна)
 
-        for j in range(points): # для каждой точки
-            SUMMCHECK += S[i,j]*2/(points-1)    # мб не надо тут единицу вычитать (points vs points-1)
+        for j in range(points-1): # для каждой точки
+            SUMMCHECK += (S[i,j] + S[i,j+1])/2 * 2./(points-1)
 
         if (abs(SUMMCHECK - 1) > 0.01):
             print('Warning! This number ' + str(SUMMCHECK) + ' must be equal 1.0\nCheck processor.getEnergyAngleDistribtion()')
