@@ -36,7 +36,7 @@ def legendre2angle(Coeff, points, NE):
 
         for j in range(points): # для каждой точки
             for l in range(maxNW):
-                S[i,j] += P[j,l+1] * A[i,l] * (2*(l+1) + 1)/2     # (l+1 нужен тк в формуле из мануала сумма начинается с l = 1) 
+                S[i,j] += P[j,l+1] * A[i,l] * (2.*(l+1.) + 1.)/2.     # (l+1 нужен тк в формуле из мануала сумма начинается с l = 1) 
 
     return S
 
@@ -110,14 +110,11 @@ def getEnergyAngleDistribtion(fname, MF, MT, points, check):
     return NK, NE, E_in, S, isData  # можно не возвращать NE тк это длина E_in. Но надо переписать много где
 
 
-
-
 def angle2spectrum(fname, MF, MT, points):# из распределения theta_neutron(E_alpha) получаем зависимость E_neutron(E_alpha) по кинематической формуле без учёта релятивизма
     
     NK, NE, E_in, S, isData = getEnergyAngleDistribtion(fname, MF, MT, points, check = False)
 
     if (isData):  # проверка на наличие данных для вычисления спектра
-        
 
         if not os.path.isdir('spectra'):  # проверка наличия директории
             os.mkdir('spectra')
@@ -143,6 +140,7 @@ def angle2spectrum(fname, MF, MT, points):# из распределения thet
         Q = In + a - Out - n
 
         E_n = np.zeros((NE, points), dtype=float)
+        E_n_cm = np.zeros_like(E_n)
         E_a = np.zeros(NE, dtype=float)
         cos_Theta = np.linspace(-1, 1, points)
 
@@ -152,7 +150,7 @@ def angle2spectrum(fname, MF, MT, points):# из распределения thet
 
             E_a[i] = E_in[i]
 
-            f1.write('Incident particle energy (eV) = \n' + str(E_in[i]) + '\n\ncos(theta)\tE_n, eV\t\t\tyield\n')
+            f1.write('Incident particle energy (eV) = \n' + str(E_in[i]) + '\n\ncos(theta)\tE_n in lab, eV\tE_n in CM, eV\tyield\n')
 
             # longLine = mass_a*mass_n*E_in[i] * (mass_n + mass_out) * (mass_a*E_in[i] - mass_out*Q - mass_out*E_in[i])
             longLine = (n+Out) * ( Out*(Q+E_a[i]) - a*E_a[i])
@@ -165,11 +163,29 @@ def angle2spectrum(fname, MF, MT, points):# из распределения thet
                 else:
                     E_n[i,j] = (shortLine + longLine - math.sqrt(shortLine**2. + 2. * shortLine * longLine) ) / (n+Out)**2.      
                 if (cos_Theta[j] >= 0): f1.write(' ')
-                f1.write(str( "{:.7f}".format(cos_Theta[j]) ) + '\t' + str( "{:.7f}".format(E_n[i,j]) ) + '\t' + str( "{:.7f}".format( S[i, j]) ) + '\n')
-            
+
+                # OzV_n_CM = math.sqrt(2. * E_n[i,j] / n) * cos_Theta[j] - math.sqrt(2. * E_a[i] / a) *a / (2.*n)
+                # OxV_n = math.sqrt(  (2. * E_n[i,j] / n) * (1. - cos_Theta[j]**2.) )
+                # E_n_cm[i,j] = n * (OzV_n_CM**2. + OxV_n**2.) / 2.
+
+                p_n_z = math.sqrt(2.*n*E_n[i,j]) * cos_Theta[j]
+                p_n_x = math.sqrt(2.*n*E_n[i,j] * (1. - cos_Theta[j]**2.))
+                p_n = math.sqrt(p_n_x**2. + p_n_z**2.)
+
+                p_a = math.sqrt(2.*a*E_a[i]) 
+
+                p_n_z_cm = p_n_z - p_a*n/(a+In)
+                p_n_x_cm = p_n_x
+                p_n_cm = math.sqrt(p_n_x_cm**2. + p_n_z_cm**2.)
+                
+                # E_n_cm[i, j] = (p_n_cm**2.) / (2. * n
+                E_n_cm[i, j] = (p_n_x**2. + (p_n_z - p_a*n/(a+In))**2.) / (2. * n)
+
+                f1.write(str( "{:.7f}".format(cos_Theta[j]) ) + '\t' + str( "{:.7f}".format(E_n[i,j]) ) + '\t' + \
+                         str( "{:.7f}".format(E_n_cm[i,j]))  + '\t' + str( "{:.7f}".format(S[i,j]) ) + '\n')
             f1.close()
 
-        return cos_Theta, E_n, S, isData
+        return cos_Theta, E_n_cm, S, isData
     
 
 # def EnSpectra(fname, MF, MT, points):

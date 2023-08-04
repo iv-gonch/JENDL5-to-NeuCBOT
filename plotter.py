@@ -23,16 +23,18 @@ def build3D(fname, MF, MT, points, graphType):
 
     if (isData):  # проверка на наличие данных для построения графика
 
-        elev=30. 
-        azim=210. 
-        roll=0.
+        
 
         if (graphType == 'neutron_spectra'):
-
+            
+            elev=20.
+            azim=20. 
+            roll=0.
+            
             cos_Theta, E_n, S, isData = processor.angle2spectrum(fname, MF, MT, points)
 
             folderName = 'neutron spectra/'
-            ylabel = 'En, eV'
+            ylabel = 'En, E7*eV'
             zlabel = 'p_i(Ea, En)'
             ax = plt.figure().add_subplot(projection='3d')
 
@@ -46,7 +48,6 @@ def build3D(fname, MF, MT, points, graphType):
             y = np.zeros((NE, points), dtype=float)
 
             for i in range(NE):
-
                 # a[i,0] = 0
                 # a[i,1] = E_n[i,0]
                 # a[i,-2] = E_n[i,-1]
@@ -72,8 +73,8 @@ def build3D(fname, MF, MT, points, graphType):
                     y[i,j] = S[i,j]
                     # y[i,j] = 1000000*S[i,j]/SUMM
 
-                if (E_in[i] >= 2500000):
-                    ax.plot(a[i], y[i], zs=E_in[i], zdir='x', color = 'black', linewidth = 0.5)
+                # if (E_in[i] >= 2500000):
+                ax.plot(a[i], y[i], zs=E_in[i], zdir='x', color = 'black', linewidth = 0.5)
 
             if not os.path.isdir('graphs3D/'):  # проверка наличия директории
                 os.mkdir('graphs3D/')    
@@ -83,15 +84,15 @@ def build3D(fname, MF, MT, points, graphType):
                 os.mkdir('graphs3D/' + folderName + fname)
             if not os.path.isdir('graphs3D/' + folderName + fname + '/MF' +  str(MF) + '_MT' + str(MT)):  # проверка наличия директории
                 os.mkdir('graphs3D/' + folderName + fname + '/MF' +  str(MF) + '_MT' + str(MT))
-
+            ax.view_init(elev, azim, roll)
             ax.text2D(0.05, 0.95, fname + ' MF' + str(MF) + ' MT' + str(MT), transform=ax.transAxes)
-            ax.set_xlim(0, 15e7)    
+            ax.set_xlim(1.5e7, 0)    
             ax.set_ylim(0, np.max(a))
-            ax.set_zlim(0, 1)
-            ax.set_xlabel('Ea, eV')
+            ax.set_zlim(0, np.max(y))
+            ax.set_xlabel('Ea, E7*eV')
             ax.set_ylabel(ylabel)
             ax.set_zlabel(zlabel)
-            ax.view_init(elev, azim, roll)
+            
             plt.savefig('graphs3D/' + folderName + fname + '/MF' +  str(MF) + '_MT' + str(MT) + '/NK' + str(NK) + '_3D.png')
 
     
