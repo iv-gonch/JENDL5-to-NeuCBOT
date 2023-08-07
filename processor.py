@@ -154,7 +154,16 @@ def angle2spectrum(fname, MF, MT, points):# из распределения thet
 
             # longLine = mass_a*mass_n*E_in[i] * (mass_n + mass_out) * (mass_a*E_in[i] - mass_out*Q - mass_out*E_in[i])
             longLine = (n+Out) * ( Out*(Q+E_a[i]) - a*E_a[i])
-            
+
+            E_treshold_lab = 0.
+
+            if (Q < 0):
+                E_treshold_lab = -Q*(1. + a/In - Q/(2.*In)) 
+
+            if (E_a[i] < E_treshold_lab):
+                print (E_a[i], '= E_a < E_treshold =', E_treshold_lab)
+                continue
+
             for j in range(points): 
                 
                 shortLine = 2.* a * E_a[i] * n * cos_Theta[j]**2.
@@ -169,22 +178,26 @@ def angle2spectrum(fname, MF, MT, points):# из распределения thet
                 # E_n_cm[i,j] = n * (OzV_n_CM**2. + OxV_n**2.) / 2.
 
                 p_n_z = math.sqrt(2.*n*E_n[i,j]) * cos_Theta[j]
+                V_n_z = p_n_z/n
                 p_n_x = math.sqrt(2.*n*E_n[i,j] * (1. - cos_Theta[j]**2.))
-                p_n = math.sqrt(p_n_x**2. + p_n_z**2.)
+                V_n_x = p_n_x/n
+                # p_n = math.sqrt(p_n_x**2. + p_n_z**2.)
 
                 p_a = math.sqrt(2.*a*E_a[i]) 
+                V_a = p_a/a
 
-                p_n_z_cm = p_n_z - p_a*n/(a+In)
-                p_n_x_cm = p_n_x
-                p_n_cm = math.sqrt(p_n_x_cm**2. + p_n_z_cm**2.)
+                # p_n_z_cm = p_n_z - p_a*n/(a+In)
+                # p_n_x_cm = p_n_x
+                # p_n_cm = math.sqrt(p_n_x_cm**2. + p_n_z_cm**2.)
                 
                 # E_n_cm[i, j] = (p_n_cm**2.) / (2. * n
-                E_n_cm[i, j] = (p_n_x**2. + (p_n_z - p_a*n/(a+In))**2.) / (2. * n)
+                E_n_cm[i,j] = (p_n_x**2. + (p_n_z - p_a*n/(a+In))**2.) / (2. * n)
+                E_n_cm[i,j] = ( n * (V_n_x**2. + (V_n_z-V_a)**2. ) )/2.
 
                 f1.write(str( "{:.7f}".format(cos_Theta[j]) ) + '\t' + str( "{:.7f}".format(E_n[i,j]) ) + '\t' + \
                          str( "{:.7f}".format(E_n_cm[i,j]))  + '\t' + str( "{:.7f}".format(S[i,j]) ) + '\n')
             f1.close()
-
+        # return cos_Theta, E_n, S, isData
         return cos_Theta, E_n_cm, S, isData
     
 
