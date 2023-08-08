@@ -33,7 +33,6 @@ def legendre2angle(Coeff, points, NE):
 
         for j in range(NW): 
             A[i,j] = Coeff[i][j]    # A[NE, l] просто ради массива numpy
-
         for j in range(points): # для каждой точки
             for l in range(maxNW):
                 S[i,j] += P[j,l+1] * A[i,l] * (2.*(l+1.) + 1.)/2.     # (l+1 нужен тк в формуле из мануала сумма начинается с l = 1) 
@@ -41,16 +40,14 @@ def legendre2angle(Coeff, points, NE):
     return S
 
 
-def normCheck(NE, points, S):
+def normCheck(NE, points, S, fname):
 
     for i in range(NE):
         SUMMCHECK = 0.0   # проверка нормировки p_i (mu,E_in) (в мануале сказано, что эта функция нормированна)
-
         for j in range(points-1): # для каждой точки
             SUMMCHECK += (S[i,j] + S[i,j+1])/2 * 2./(points-1)
-
-        if (abs(SUMMCHECK - 1) > 0.01):
-            print('Warning! This number ' + str(SUMMCHECK) + ' must be equal 1.0\nCheck processor.getEnergyAngleDistribtion()')
+        if (abs(SUMMCHECK - 1) > 1.e-2):
+            print('Warning! This number ' + str(SUMMCHECK - 1.)  + ' must be equal 0.0 for ' + fname + 'NE = ' + str(i) + '\nCheck processor.getEnergyAngleDistribtion()')
 
 
 def getEnergyAngleDistribtion(fname, MF, MT, points, check):
@@ -103,7 +100,7 @@ def getEnergyAngleDistribtion(fname, MF, MT, points, check):
         
 #============ проверка вычислений ============# 0.15202460931963135 - самое обольшое отклонение от 1.0 для C12 MF6 MT50
         if check:
-            normCheck(NE, points, S)
+            normCheck(NE, points, S, fname)
 
 #============ выводим кортеж значений для графиков ============# 
 
@@ -112,7 +109,7 @@ def getEnergyAngleDistribtion(fname, MF, MT, points, check):
 
 def angle2spectrum(fname, MF, MT, points):# из распределения theta_neutron(E_alpha) получаем зависимость E_neutron(E_alpha) по кинематической формуле без учёта релятивизма
     
-    NK, NE, E_in, S, isData = getEnergyAngleDistribtion(fname, MF, MT, points, check = False)
+    NK, NE, E_in, S, isData = getEnergyAngleDistribtion(fname, MF, MT, points, check = True)
 
     if (isData):  # проверка на наличие данных для вычисления спектра
 
@@ -173,29 +170,20 @@ def angle2spectrum(fname, MF, MT, points):# из распределения thet
                     E_n[i,j] = (shortLine + longLine - math.sqrt(shortLine**2. + 2. * shortLine * longLine) ) / (n+Out)**2.      
                 if (cos_Theta[j] >= 0): f1.write(' ')
 
-                # OzV_n_CM = math.sqrt(2. * E_n[i,j] / n) * cos_Theta[j] - math.sqrt(2. * E_a[i] / a) *a / (2.*n)
-                # OxV_n = math.sqrt(  (2. * E_n[i,j] / n) * (1. - cos_Theta[j]**2.) )
-                # E_n_cm[i,j] = n * (OzV_n_CM**2. + OxV_n**2.) / 2.
 
                 p_n_z = math.sqrt(2.*n*E_n[i,j]) * cos_Theta[j]
                 V_n_z = p_n_z/n
                 p_n_x = math.sqrt(2.*n*E_n[i,j] * (1. - cos_Theta[j]**2.))
                 V_n_x = p_n_x/n
-                # p_n = math.sqrt(p_n_x**2. + p_n_z**2.)
 
                 p_a = math.sqrt(2.*a*E_a[i]) 
                 V_a = p_a/a
 
-                # p_n_z_cm = p_n_z - p_a*n/(a+In)
-                # p_n_x_cm = p_n_x
-                # p_n_cm = math.sqrt(p_n_x_cm**2. + p_n_z_cm**2.)
-                
-                # E_n_cm[i, j] = (p_n_cm**2.) / (2. * n
                 E_n_cm[i,j] = (p_n_x**2. + (p_n_z - p_a*n/(a+In))**2.) / (2. * n)
                 E_n_cm[i,j] = ( n * (V_n_x**2. + (V_n_z-V_a)**2. ) )/2.
 
                 f1.write(str( "{:.7f}".format(cos_Theta[j]) ) + '\t' + str( "{:.7f}".format(E_n[i,j]) ) + '\t' + \
-                         str( "{:.7f}".format(E_n_cm[i,j]))  + '\t' + str( "{:.7f}".format(S[i,j]) ) + '\n')
+                         str( "{:.6f}".format(E_n_cm[i,j]))  + '\t' + str( "{:.7f}".format(S[i,j]) ) + '\n')
             f1.close()
         # return cos_Theta, E_n, S, isData
         return cos_Theta, E_n_cm, S, isData
