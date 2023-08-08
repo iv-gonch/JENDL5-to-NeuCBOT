@@ -8,6 +8,7 @@
 from __future__ import print_function
 from __future__ import division
 import numpy as np
+import matplotlib.pyplot as plt
 import math
 import sys
 import os
@@ -26,4 +27,24 @@ def getLegendre(a, l):  # a - количество точек по косину�
     for j in range(l-2): 
         # P(n+1,x) = (2*n+1)/(n+1)*x*P(n,x) - n/(n+1)*P(n-1,x)
         P[:,j+2] = (2*j+3)/(j+2)*x*P[:,j+1] - (j+1)/(j+2)*P[:,j] # рекуррентная формула та же, но вместо n подставленно n+1
+
+
+
+    # if not os.path.isdir('graphs2D/'):  # проверка полиномов Лежандра
+    #     os.mkdir('graphs2D/')  
+    # if not os.path.isdir('graphs2D/legendre/'): 
+    #     os.mkdir('graphs2D/legendre/')    
+
+    # for j in range(l):
+    #     plt.axis([-1.05,1.05,-1.05,1.05])
+    #     plt.title('l = ' + str(j), fontsize=10)
+    #     plt.grid(True)
+    #     plt.plot(x, P[:,j], color=(1, .0, 0.0))
+    #     plt.savefig('graphs2D/legendre/l_' + str(j) + '.png')
+    #     plt.clf()
+    # # plt.savefig('graphs2D/legendre/l.png')
+    # # plt.clf()
+
+
+
     return P
