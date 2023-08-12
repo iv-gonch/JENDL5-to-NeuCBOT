@@ -18,6 +18,16 @@ import converter
 import polynomials
 
 
+def normCheck(NE, points, S, fname):
+
+    for i in range(NE):
+        SUMMCHECK = 0.0   # проверка нормировки p_i (mu,E_in) (в мануале сказано, что эта функция нормированна)
+        for j in range(points-1): # для каждой точки
+            SUMMCHECK += (S[i,j] + S[i,j+1])/2 * 2./(points-1)
+        if (abs(SUMMCHECK - 1) > 1.e-2):
+            print('Warning! This number ' + str(SUMMCHECK - 1.)  + ' must be equal 0.0 for ' + fname + '. NE = ' + str(i) + '\nCheck processor.getEnergyAngleDistribtion()')
+
+
 def legendre2angle(Coeff, points, NE):
 
     maxNW = len(max(Coeff[:], key=len)) # максимальное количество чисел в файле
@@ -40,20 +50,10 @@ def legendre2angle(Coeff, points, NE):
     return S
 
 
-def normCheck(NE, points, S, fname):
-
-    for i in range(NE):
-        SUMMCHECK = 0.0   # проверка нормировки p_i (mu,E_in) (в мануале сказано, что эта функция нормированна)
-        for j in range(points-1): # для каждой точки
-            SUMMCHECK += (S[i,j] + S[i,j+1])/2 * 2./(points-1)
-        if (abs(SUMMCHECK - 1) > 1.e-2):
-            print('Warning! This number ' + str(SUMMCHECK - 1.)  + ' must be equal 0.0 for ' + fname + 'NE = ' + str(i) + '\nCheck processor.getEnergyAngleDistribtion()')
-
-
 def getEnergyAngleDistribtion(fname, MF, MT, points, check):
     
     NK = 1  # есть в названии директории. Отвечает за количество различных вылетющих частц
-    counter = 1 # счётчик по эенргии
+    counter = 0 # счётчик по эенргии
     E_in = []   # массив энергий налетающих альфа частиц
     Coeff = []  # будущий двумерный массив коэффициентов Лежандра
 
@@ -81,7 +81,7 @@ def getEnergyAngleDistribtion(fname, MF, MT, points, check):
                 Coeff.append([])    # создаём место для записи коэффициентов Лежандра
 
             if (NS > 8 and line != ''):    # строки, где хранятся коэффициенты Лежандра 
-                Coeff[counter-1].append(float(line))
+                Coeff[counter].append(float(line))
 
             NS += 1
 
@@ -147,7 +147,7 @@ def angle2spectrum(fname, MF, MT, points):# из распределения thet
 
             E_a[i] = E_in[i]
 
-            f1.write('Incident particle energy (eV) = \n' + str(E_in[i]) + '\n\ncos(theta)\tE_n in lab, eV\tE_n in CM, eV\tyield\n')
+            f1.write('Incident particle energy (eV) = \n' + str(E_a[i]) + '\n\ncos(theta)\tE_n in lab, eV\tE_n in CM, eV\tyield\n')
 
             # longLine = mass_a*mass_n*E_in[i] * (mass_n + mass_out) * (mass_a*E_in[i] - mass_out*Q - mass_out*E_in[i])
             longLine = (n+Out) * ( Out*(Q+E_a[i]) - a*E_a[i])

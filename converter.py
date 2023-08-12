@@ -14,6 +14,17 @@ import constants
 import chemistry
 import polynomials
 
+
+def convertLine(line):  # чтение в конвертированном файле
+
+    word = np.zeros(10, dtype = float)  # каждый элемент строки файла будем записывать в виде float в массив numpy. Изначально всё - вещественны нули
+    if (line[83:85] != ' 0' and line[83:85] != ' 1'):   # отсекаем строки с текстом (те. с MF=' 1' или =' 0', MT=' 451')
+        for i in range(10): # цикл нужен чтобы под float() попали только элементы строки, состоящие из цифр (иначе ошибка)
+            if (line.strip('|').split('|')[i].strip() != ''):   # пустые слова остаются вещественными нулями в word[]
+                word[i] = float(line.strip('|').split('|')[i].strip())  # в конвертированных файлах разделителем является '|' 
+    return word
+
+
 def convertENDF(fname): # convert Evaluated Nuclear Data File
 
     word = ['0'] * 10   # слова из необработанного файла
@@ -65,23 +76,14 @@ def convertENDF(fname): # convert Evaluated Nuclear Data File
     f1.close()
 
 
-def convertLine(line):  # чтение в конвертированном файле
-
-    word = np.zeros(10, dtype = float)  # каждый элемент строки файла будем записывать в виде float в массив numpy. Изначально всё - вещественны нули
-    if (line[83:85] != ' 0' and line[83:85] != ' 1'):   # отсекаем строки с текстом (те. с MF=' 1' или =' 0', MT=' 451')
-        for i in range(10): # цикл нужен чтобы под float() попали только элементы строки, состоящие из цифр (иначе ошибка)
-            if (line.strip('|').split('|')[i].strip() != ''):   # пустые слова остаются вещественными нулями в word[]
-                word[i] = float(line.strip('|').split('|')[i].strip())  # в конвертированных файлах разделителем является '|' 
-    return word
-
-
 def separateData(fname, MF, MT):   # считывает из ./converted, записывает в ./reshaped по отдельным папкам
 
     if not os.path.isfile('converted/' + fname):    # проверка наличия конвертированного файла
         print('There is no converted', fname, 'file!', file=sys.stdout)
         convertENDF(fname)
+
     f = open('converted/' + fname)
-    f1 = open('converted/' + fname) # тут мы просто открываем файл как f1. Потом, в цикле, будем открывать нужные файлы, 
+    f1 = open('converted/' + fname) # тут мы просто открываем файл. Потом, в цикле, будем открывать нужные файлы, 
     # когда узнаем их расположение. (тк цикл начинается с закрытия файла, для этого нужно сперва открыть)
     
     if not os.path.isdir('reshaped'):  # проверка наличия директории
@@ -139,7 +141,6 @@ def separateData(fname, MF, MT):   # считывает из ./converted, зап
             if (NS == int(NWlineNumber[counter])): # номер строоки с очередным NW, LANG, E_in (и NL)
                 NWlineNumber.append(NWlineNumber[counter] + math.ceil(int(word[constants.ENDF.NWindex])/6) + 1)
                 # записываем в какой строке ожидать следующее значение NW
-                counter += 1    # счётчик номера E_in 
                 f1.close()  # закрываем файл с предыдущим E_in
             
 
@@ -160,7 +161,7 @@ def separateData(fname, MF, MT):   # считывает из ./converted, зап
                 if (int(word[constants.ENDF.LANGindex]) != 0):  # если LANG!=0, то надо читать мануал и дописывать код
                     print('LANG != 0 for', fname, 'line', NS)
                 tmp = int(word[constants.ENDF.NWindex]) # счётчик количества точек для конкретного E_in
-
+                counter += 1    # счётчик номера E_in 
             if (counter > 0 and NS > NWlineNumber[counter-1]):
                 for i in range(6):
                     if(i < tmp):    # чтобы не выводить нули из строки, которые являются не значениями, а символами пустых ячеек                      

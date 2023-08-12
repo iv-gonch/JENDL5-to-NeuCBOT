@@ -23,15 +23,13 @@ def build3D(fname, MF, MT, points, graphType):
 
     if (isData):  # проверка на наличие данных для построения графика
 
-        
-
         if (graphType == 'neutron_spectra'):
             
             elev=30.
-            azim=30. 
+            azim=15. 
             roll=0.
             
-            cos_Theta, E_n, S, isData = processor.angle2spectrum(fname, MF, MT, points)
+            cos_Theta, E_n, S, isData = processor.angle2spectrum(fname, MF, MT, points, )
 
             folderName = 'neutron spectra/'
             ylabel = 'En, cm E7*eV'

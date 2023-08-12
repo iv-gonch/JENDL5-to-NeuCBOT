@@ -14,6 +14,7 @@ import sys
 import os
 import constants
 
+
 def getLegendre(a, l):  # a - количество точек по косинусу угла (от -1 до 1), 
                         # l - количество коэффициентов Лежандра (NW часто = NL. NL это l)
 
