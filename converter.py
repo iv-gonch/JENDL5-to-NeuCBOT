@@ -11,8 +11,8 @@ import sys
 import os
 
 import constants
-import chemistry
-import polynomials
+# import chemistry
+# import polynomials
 
 
 def convertLine(line):  # чтение в конвертированном файле

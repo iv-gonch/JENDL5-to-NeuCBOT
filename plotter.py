@@ -5,16 +5,16 @@
 
 from __future__ import print_function
 from __future__ import division
-import sys
+# import sys
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
+# from mpl_toolkits import mplot3d
 
-import constants
-import converter
+# import constants
+# import converter
 import processor
-import polynomials
+# import polynomials
 
 
 def build3D(fname, MF, MT, points, graphType):
@@ -29,12 +29,18 @@ def build3D(fname, MF, MT, points, graphType):
             azim=15. 
             roll=0.
             
-            cos_Theta, E_n, S, isData = processor.angle2spectrum(fname, MF, MT, points, )
+            cos_Theta, E_n, S, isData = processor.angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData)
 
             folderName = 'neutron spectra/'
             ylabel = 'En, cm E7*eV'
             zlabel = 'p_i(Ea, En)'
-            ax = plt.figure().add_subplot(projection='3d')
+            
+            fig = plt.figure(figsize=(7, 7))
+            # fig.set_dpi(10000000)
+
+            ax = fig.add_subplot(111, projection='3d')
+
+            # ax = plt.figure(figsize=(7, 7)).add_subplot(projection='3d')
 
             # a = np.zeros((NE, points+4), dtype=float)
             # y = np.zeros((NE, points+4), dtype=float)
@@ -132,7 +138,7 @@ def build3D(fname, MF, MT, points, graphType):
 
         if (graphType == 'kinematics'):
 
-            cos_Theta, E_n, S, isData = processor.angle2spectrum(fname, MF, MT, points)
+            cos_Theta, E_n, S, isData = processor.angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData)
 
             folderName = 'kinematics/'
             ylabel = 'cos(mu)'
@@ -172,7 +178,7 @@ def build2D(fname, MF, MT, points, graphType):
 
         if (graphType == 'neutron_spectra'):
 
-            cos_Theta, E_n, S, isData = processor.angle2spectrum(fname, MF, MT, points)
+            cos_Theta, E_n, S, isData = processor.angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData)
 
             folderName = 'neutron spectra/'
 
@@ -228,7 +234,7 @@ def build2D(fname, MF, MT, points, graphType):
                     os.mkdir('graphs2D/' + folderName + fname)
                 if not os.path.isdir('graphs2D/' + folderName + fname + '/MF' +  str(MF) + '_MT' + str(MT)):  # проверка наличия директории
                     os.mkdir('graphs2D/' + folderName + fname + '/MF' +  str(MF) + '_MT' + str(MT))
-                
+                    
                 plt.axis([0, np.max(a), 0, np.max(y)])
                 plt.title(fname + ' MF ' +  str(MF) + ' MT ' + str(MT) + ' E_in(alpha) from 0 to ' + str(E_in[i]*(10**(-6))) + ' MeV', fontsize=10)
                 plt.xlabel('E_n, eV', color='gray')

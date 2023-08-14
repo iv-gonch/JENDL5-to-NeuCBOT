@@ -3,13 +3,13 @@
 from __future__ import print_function
 from __future__ import division
 import sys
-import os
+# import os
 
-import constants
-import chemistry
+# import constants
+# import chemistry
 import converter
 import processor
-import polynomials
+# import polynomials
 import plotter
 
 # ofile = sys.stdout
@@ -51,7 +51,8 @@ def main():
             MT = int(sys.argv[sys.argv.index(arg)+3])
             points = int(sys.argv[sys.argv.index(arg)+4])
             print('Making sprctra data of', fname, 'MF'+ str(MF), 'MT' + str(MT), file=sys.stdout)
-            processor.angle2spectrum(fname, MF, MT, points)
+            NK, NE, E_in, S, isData = processor.getEnergyAngleDistribtion(fname, MF, MT, points, check = True)
+            processor.angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData)
 
 if __name__ == '__main__':
 

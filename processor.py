@@ -8,11 +8,11 @@ from __future__ import print_function
 from __future__ import division
 import numpy as np
 import math
-import sys
+# import sys
 import os
 
-import plotter
-import constants
+# import plotter
+# import constants
 import chemistry
 import converter
 import polynomials
@@ -107,10 +107,8 @@ def getEnergyAngleDistribtion(fname, MF, MT, points, check):
     return NK, NE, E_in, S, isData  # можно не возвращать NE тк это длина E_in. Но надо переписать много где
 
 
-def angle2spectrum(fname, MF, MT, points):# из распределения theta_neutron(E_alpha) получаем зависимость E_neutron(E_alpha) по кинематической формуле без учёта релятивизма
+def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData):# из распределения theta_neutron(E_alpha) получаем зависимость E_neutron(E_alpha) по кинематической формуле без учёта релятивизма
     
-    NK, NE, E_in, S, isData = getEnergyAngleDistribtion(fname, MF, MT, points, check = True)
-
     if (isData):  # проверка на наличие данных для вычисления спектра
 
         if not os.path.isdir('spectra'):  # проверка наличия директории
@@ -119,7 +117,6 @@ def angle2spectrum(fname, MF, MT, points):# из распределения thet
             os.mkdir('spectra/' + fname)
         if not os.path.isdir('spectra/' + fname + '/MF' + str(MF) + '_MT' + str(MT)): # проверка наличия директории
             os.mkdir('spectra/' + fname + '/MF' + str(MF) + '_MT' + str(MT))
-
 
         ele = fname.split('_')[0]
         Z = int(chemistry.getZ(ele))
@@ -191,7 +188,7 @@ def angle2spectrum(fname, MF, MT, points):# из распределения thet
 
 # def EnSpectra(fname, MF, MT, points):
 
-#     E_n = angle2spectrum(fname, MF, MT, points)
+#     E_n = angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData)
 #     NK, NE, E_in, S, isData = getEnergyAngleDistribtion(fname, MF, MT, points, check=False)
 
 #     newArray = np.zeros((NE, points, 3), dtype=float)  # создаём массив по форме как E_n, но состящий из нулей.
