@@ -125,16 +125,18 @@ def separateData(fname, MF, MT):   # считывает из ./converted, зап
                 if (LIP != 0): print('LIP != 0 for', fname) # проверка на всякий случай
                 LAW = int(word[constants.ENDF.LAWindex])
                 if (LAW != 2): print('LAW != 2 for', fname) # если LAW!=2, то надо читать мануал и дописывать новый функционал
-                # NR = int(word[constants.ENDF.NRindex])      # встречается ещё один NR. Но оба не используются
+                NR = int(word[constants.ENDF.NRindex])      # встречается ещё один NR. Но оба не используются
+                if (NR != 1): print('NR != 1 in line 2 for', fname, MF, MT)
                 NP = int(word[constants.ENDF.NPindex])      # нужен чтобы правильно определять номер строки с NE 
-            
+
             if (NS == 3): 
                 NBT = int(word[constants.ENDF.NBTindex])    # не уверен что это NBT
                 INT = int(word[constants.ENDF.INTindex])    # не уверен что это INT
             
             # if (NS <= 3): # вывод шапки таблицы в консоль
-            
             if (NS == 4 + math.ceil(NP/3)):   # если номер строки таков, то в ней лежит NE (и NR)
+                NR = int(word[constants.ENDF.NRindex])      # # встречается ещё один NR. Но оба не используются
+                if (NR != 1): print('NR != 1 in line', str(NS), 'for', fname, MF, MT)
                 NE = int(word[constants.ENDF.NEindex])  # записываем чему равно NE
                 NWlineNumber[0] = int(word[constants.ENDF.NSindex] + 2) # записываем в какой строке ожидать следующее значение NW
             

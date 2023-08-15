@@ -135,6 +135,7 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData):# из рас
 
         E_n = np.zeros((NE, points), dtype=float)
         E_n_cm = np.zeros_like(E_n)
+        T_n = np.zeros_like(E_n)
         E_a = np.zeros(NE, dtype=float)
         cos_Theta = np.linspace(-1, 1, points)
 
@@ -144,7 +145,7 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData):# из рас
 
             E_a[i] = E_in[i]
 
-            f1.write('Incident particle energy (eV) = \n' + str(E_a[i]) + '\n\ncos(theta)\tE_n in lab, eV\tE_n in CM, eV\tyield\n')
+            f1.write('Incident particle energy (eV) = \n' + str(E_a[i]) + '\n\ncos(theta)\tE_n in lab, eV\tE_n in CM, eV\tNuclPh, eV\tyield\n')
 
             # longLine = mass_a*mass_n*E_in[i] * (mass_n + mass_out) * (mass_a*E_in[i] - mass_out*Q - mass_out*E_in[i])
             longLine = (n+Out) * ( Out*(Q+E_a[i]) - a*E_a[i])
@@ -168,6 +169,8 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData):# из рас
                 if (cos_Theta[j] >= 0): f1.write(' ')
 
 
+                T_n[i,j] = (a*n*E_a[i]/(n+Out)**2) * (cos_Theta[j] + math.sqrt( cos_Theta[j]**2 + (n+Out)*((Out-a)*E_a[i] + Out*Q)/(a*n*E_a[i]) ) )**2
+
                 p_n_z = math.sqrt(2.*n*E_n[i,j]) * cos_Theta[j]
                 V_n_z = p_n_z/n
                 p_n_x = math.sqrt(2.*n*E_n[i,j] * (1. - cos_Theta[j]**2.))
@@ -180,7 +183,8 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData):# из рас
                 E_n_cm[i,j] = ( n * (V_n_x**2. + (V_n_z-V_a)**2. ) )/2.
 
                 f1.write(str( "{:.7f}".format(cos_Theta[j]) ) + '\t' + str( "{:.7f}".format(E_n[i,j]) ) + '\t' + \
-                         str( "{:.6f}".format(E_n_cm[i,j]))  + '\t' + str( "{:.7f}".format(S[i,j]) ) + '\n')
+                         str( "{:.6f}".format(E_n_cm[i,j]))   + '\t' + str( "{:.7f}".format(T_n[i,j]) ) + '\t' + \
+                         str( "{:.7f}".format(S[i,j]) ) + '\n')
             f1.close()
         # return cos_Theta, E_n, S, isData
         return cos_Theta, E_n_cm, S, isData
