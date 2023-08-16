@@ -19,7 +19,7 @@ import processor
 
 def build3D(fname, MF, MT, points, graphType):
 
-    NK, NE, E_in, S, isData = processor.getEnergyAngleDistribtion(fname, MF, MT, points, check = True)
+    NK, NE, E_in, S, isData = processor.getEnergyAngleDistribtion(fname, MF, MT, points, normcheck = True)
 
     if (isData):  # проверка на наличие данных для построения графика
 
@@ -32,8 +32,8 @@ def build3D(fname, MF, MT, points, graphType):
             cos_Theta, E_n, S, isData = processor.angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData)
 
             folderName = 'neutron spectra/'
-            ylabel = 'En, cm E7*eV'
-            zlabel = 'p_i(Ea, En)'
+            ylabel = 'En, cm MeV'
+            zlabel = 'p_i(Ta, Tn)'
             
             fig = plt.figure(figsize=(7, 7))
             # fig.set_dpi(10000000)
@@ -73,12 +73,12 @@ def build3D(fname, MF, MT, points, graphType):
                     # # a[i, j+1] = E_n[i,j]
                     # # y[i, j+1] = S[i,j]
 
-                    a[i,j] = E_n[i,j]
+                    a[i,j] = E_n[i,j]/1e6
                     y[i,j] = S[i,j]
                     # y[i,j] = 1000000*S[i,j]/SUMM
 
                 # if (E_in[i] >= 2500000):
-                ax.plot(a[i], y[i], zs=E_in[i], zdir='x', color = 'black', linewidth = 0.5)
+                ax.plot(a[i], y[i], zs=E_in[i]/1e6, zdir='x', color = 'black', linewidth = 0.5)
 
             if not os.path.isdir('graphs3D/'):  # проверка наличия директории
                 os.mkdir('graphs3D/')    
@@ -90,10 +90,11 @@ def build3D(fname, MF, MT, points, graphType):
                 os.mkdir('graphs3D/' + folderName + fname + '/MF' +  str(MF) + '_MT' + str(MT))
             ax.view_init(elev, azim, roll)
             ax.text2D(0.05, 0.95, fname + ' MF' + str(MF) + ' MT' + str(MT), transform=ax.transAxes)
-            ax.set_xlim(1.5e7, 0)    
+            ax.set_xlim(15, 0)  
+            if(fname =='C_12'): ax.set_xlim(15, 11)  
             ax.set_ylim(0, np.max(a))
             ax.set_zlim(0, np.max(y))
-            ax.set_xlabel('Ea, lab. E7*eV')
+            ax.set_xlabel('Ea, lab. MeV')
             ax.set_ylabel(ylabel)
             ax.set_zlabel(zlabel)
             
@@ -172,7 +173,7 @@ def build3D(fname, MF, MT, points, graphType):
 
 def build2D(fname, MF, MT, points, graphType):
 
-    NK, NE, E_in, S, isData = processor.getEnergyAngleDistribtion(fname, MF, MT, points, check = True)
+    NK, NE, E_in, S, isData = processor.getEnergyAngleDistribtion(fname, MF, MT, points, normcheck = True)
 
     if (isData):  # проверка на наличие данных для построения графика
 

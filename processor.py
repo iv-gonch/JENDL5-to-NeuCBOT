@@ -46,11 +46,10 @@ def legendre2angle(Coeff, points, NE):
         for j in range(points): # для каждой точки
             for l in range(maxNW):
                 S[i,j] += P[j,l+1] * A[i,l] * (2.*(l+1.) + 1.)/2.     # (l+1 нужен тк в формуле из мануала сумма начинается с l = 1) 
-
     return S
 
 
-def getEnergyAngleDistribtion(fname, MF, MT, points, check):
+def getEnergyAngleDistribtion(fname, MF, MT, points, normcheck):
     
     NK = 1  # есть в названии директории. Отвечает за количество различных вылетющих частц
     counter = 0 # счётчик по эенргии
@@ -79,12 +78,9 @@ def getEnergyAngleDistribtion(fname, MF, MT, points, check):
             if (NS == 6):   # строка, где записана энергия влетающей альфа-частицы
                 E_in.append(float(line))    # записываем энергию альфа частицы
                 Coeff.append([])    # создаём место для записи коэффициентов Лежандра
-
             if (NS > 8 and line != ''):    # строки, где хранятся коэффициенты Лежандра 
                 Coeff[counter].append(float(line))
-
             NS += 1
-
         counter += 1
 
 #========= вычисляем и записываем значение угла (через коэффициенты Лежандра) =========#
@@ -92,19 +88,19 @@ def getEnergyAngleDistribtion(fname, MF, MT, points, check):
     if (len(Coeff[:]) == 0):    #  если в файле нет данных 
         print('\n' + fname, 'MF'+ str(MF), 'MT' + str(MT), 'has no Legendre coefficients!\n')
         NK, NE, E_in, S, isData = 0, 0, [], [], False
-
     else:
         NE = len(Coeff) # число различных энергий налетающей альфа-частицы 
         S = legendre2angle(Coeff, points, NE)   # вычисляем углы из Лежандра 
         isData = True
         
-#============ проверка вычислений ============# 0.15202460931963135 - самое обольшое отклонение от 1.0 для C12 MF6 MT50
-        if check:
+#============ проверка вычислений ============# самое обольшое отклонение от 1.0, которое я видел, было у C12 MF6 MT50
+        
+        if normcheck:
             normCheck(NE, points, S, fname)
 
 #============ выводим кортеж значений для графиков ============# 
 
-    return NK, NE, E_in, S, isData  # можно не возвращать NE тк это длина E_in. Но надо переписать много где
+    return NK, NE, E_in, S, isData  # можно не возвращать NE тк это длина E_in. Но это надоисправлять везде, где вызывается функция
 
 
 def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData):# из распределения theta_neutron(E_alpha) получаем зависимость E_neutron(E_alpha) по кинематической формуле без учёта релятивизма
@@ -145,9 +141,9 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData):# из рас
 
             E_a[i] = E_in[i]
 
-            f1.write('Incident particle energy (eV) = \n' + str(E_a[i]) + '\n\ncos(theta)\tE_n in lab, eV\tE_n in CM, eV\tNuclPh, eV\tyield\n')
+            f1.write('Incident particle energy (eV) = \n' + str(E_a[i]) + '\n\ncos(theta)\tE_n in lab, eV\tE_n in CM, eV\tyield\n')
+            # f1.write('Incident particle energy (eV) = \n' + str(E_a[i]) + '\n\ncos(theta)\tE_n in lab, eV\tE_n in CM, eV\tNuclPh, eV\tyield\n')
 
-            # longLine = mass_a*mass_n*E_in[i] * (mass_n + mass_out) * (mass_a*E_in[i] - mass_out*Q - mass_out*E_in[i])
             longLine = (n+Out) * ( Out*(Q+E_a[i]) - a*E_a[i])
 
             E_treshold_lab = 0.
@@ -168,23 +164,17 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData):# из рас
                     E_n[i,j] = (shortLine + longLine - math.sqrt(shortLine**2. + 2. * shortLine * longLine) ) / (n+Out)**2.      
                 if (cos_Theta[j] >= 0): f1.write(' ')
 
-
-                T_n[i,j] = (a*n*E_a[i]/(n+Out)**2) * (cos_Theta[j] + math.sqrt( cos_Theta[j]**2 + (n+Out)*((Out-a)*E_a[i] + Out*Q)/(a*n*E_a[i]) ) )**2
-
-                p_n_z = math.sqrt(2.*n*E_n[i,j]) * cos_Theta[j]
-                V_n_z = p_n_z/n
-                p_n_x = math.sqrt(2.*n*E_n[i,j] * (1. - cos_Theta[j]**2.))
-                V_n_x = p_n_x/n
-
-                p_a = math.sqrt(2.*a*E_a[i]) 
-                V_a = p_a/a
-
-                E_n_cm[i,j] = (p_n_x**2. + (p_n_z - p_a*n/(a+In))**2.) / (2. * n)
-                E_n_cm[i,j] = ( n * (V_n_x**2. + (V_n_z-V_a)**2. ) )/2.
+                E_n_cm[i,j] = E_n[i,j] - 2.*math.sqrt(n*E_n[i,j]*E_a[i]/a)*cos_Theta[j] + n*E_a[i]/a
 
                 f1.write(str( "{:.7f}".format(cos_Theta[j]) ) + '\t' + str( "{:.7f}".format(E_n[i,j]) ) + '\t' + \
-                         str( "{:.6f}".format(E_n_cm[i,j]))   + '\t' + str( "{:.7f}".format(T_n[i,j]) ) + '\t' + \
-                         str( "{:.7f}".format(S[i,j]) ) + '\n')
+                         str( "{:.6f}".format(E_n_cm[i,j]))   + '\t' + str( "{:.7f}".format(S[i,j]) ) + '\n')
+
+                # T_n - энергия нейтронов в лабораторной системе, вычисленная по формуле с http://nuclphys.sinp.msu.ru/reactions/cinem.htm#2.32
+                # T_n[i,j] = (a*n*E_a[i]/(n+Out)**2) * (cos_Theta[j] + \
+                #                                       math.sqrt( cos_Theta[j]**2 + (n+Out)*((Out-a)*E_a[i] + Out*Q)/(a*n*E_a[i]) ) )**2
+                # f1.write(str( "{:.7f}".format(cos_Theta[j]) ) + '\t' + str( "{:.7f}".format(E_n[i,j]) ) + '\t' + \
+                #          str( "{:.6f}".format(E_n_cm[i,j]))   + '\t' + str( "{:.7f}".format(T_n[i,j]) ) + '\t' + \
+                #          str( "{:.7f}".format(S[i,j]) ) + '\n')
             f1.close()
         # return cos_Theta, E_n, S, isData
         return cos_Theta, E_n_cm, S, isData
@@ -193,7 +183,7 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData):# из рас
 # def EnSpectra(fname, MF, MT, points):
 
 #     E_n = angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData)
-#     NK, NE, E_in, S, isData = getEnergyAngleDistribtion(fname, MF, MT, points, check=False)
+#     NK, NE, E_in, S, isData = getEnergyAngleDistribtion(fname, MF, MT, points, normcheck=False)
 
 #     newArray = np.zeros((NE, points, 3), dtype=float)  # создаём массив по форме как E_n, но состящий из нулей.
 #     cos_Theta = np.linspace(-1, 1, points)

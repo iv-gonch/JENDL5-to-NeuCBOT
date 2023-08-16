@@ -51,7 +51,7 @@ def main():
             MT = int(sys.argv[sys.argv.index(arg)+3])
             points = int(sys.argv[sys.argv.index(arg)+4])
             print('Making sprctra data of', fname, 'MF'+ str(MF), 'MT' + str(MT), file=sys.stdout)
-            NK, NE, E_in, S, isData = processor.getEnergyAngleDistribtion(fname, MF, MT, points, check = True)
+            NK, NE, E_in, S, isData = processor.getEnergyAngleDistribtion(fname, MF, MT, points, normcheck = True)
             processor.angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData)
 
 if __name__ == '__main__':
