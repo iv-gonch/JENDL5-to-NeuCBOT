@@ -77,7 +77,7 @@ def getMass(ZA):
     Z = ZA // 1000 
     A = ZA % 1000
     name = getElement(Z)
-    return float(ele_mass[ str(Z) + '-' + name + '-' + str(A)])
+    return float(ele_mass[ str(Z) + '-' + name + '-' + str(A)]) * 939565421 # в эВ
 
 def getZ(ele):
     return int(elements[ele.capitalize()])

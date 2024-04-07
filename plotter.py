@@ -23,20 +23,20 @@ def build3D(fname, MF, MT, points, graphType):
 
     if (isData):  # проверка на наличие данных для построения графика
 
-        if (graphType == 'neutron_spectra'):
+        if (graphType == 'En_distribution'):
             
             elev=30.
-            azim=15. 
+            azim=5. 
             roll=0.
             
-            cos_Theta, E_n, S, isData = processor.angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData)
+            cos_Theta, E_n, dist_En, isData = processor.angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData)
 
             folderName = 'neutron spectra/'
-            ylabel = 'En, cm MeV'
-            zlabel = 'p_i(Ta, Tn)'
+            ylabel = '$E_n, lab. MeV$'
+            zlabel = '$p_i(E_\\alpha, E_n)$'
             
-            fig = plt.figure(figsize=(7, 7))
-            # fig.set_dpi(10000000)
+            fig = plt.figure(figsize=(8, 8))
+            fig.set_dpi(1000)
 
             ax = fig.add_subplot(111, projection='3d')
 
@@ -74,12 +74,11 @@ def build3D(fname, MF, MT, points, graphType):
                     # # y[i, j+1] = S[i,j]
 
                     a[i,j] = E_n[i,j]/1e6
-                    y[i,j] = S[i,j]
+                    y[i,j] = dist_En[i,j]
                     # y[i,j] = 1000000*S[i,j]/SUMM
 
                 # if (E_in[i] >= 2500000):
                 ax.plot(a[i], y[i], zs=E_in[i]/1e6, zdir='x', color = 'black', linewidth = 0.5)
-
             if not os.path.isdir('graphs3D/'):  # проверка наличия директории
                 os.mkdir('graphs3D/')    
             if not os.path.isdir('graphs3D/' + folderName):  # проверка наличия директории
@@ -93,8 +92,9 @@ def build3D(fname, MF, MT, points, graphType):
             ax.set_xlim(15, 0)  
             if(fname =='C_12'): ax.set_xlim(15, 11)  
             ax.set_ylim(0, np.max(a))
-            ax.set_zlim(0, np.max(y))
-            ax.set_xlabel('Ea, lab. MeV')
+            ax.set_zlim(0, 0.000002)
+            # ax.set_zlim(0, np.max(y))
+            ax.set_xlabel('$E\\alpha, lab. MeV$')
             ax.set_ylabel(ylabel)
             ax.set_zlabel(zlabel)
             
@@ -104,13 +104,15 @@ def build3D(fname, MF, MT, points, graphType):
         if (graphType == 'angle_distribution'):
 
             elev=30.
-            azim=30. 
+            azim=15. 
             roll=0.
 
             folderName = 'angle distributions/'
-            ylabel = 'cos(mu)'
-            zlabel = 'p_i(Ea, mu)'
-            ax = plt.figure().add_subplot(projection='3d')
+            ylabel = '$\\cos{\\theta_n}$'
+            zlabel = '$p_i(E_\\alpha, \\cos{\\theta_n})$'
+
+            fig = plt.figure(figsize=(7, 7))
+            ax = fig.add_subplot(111, projection='3d')
 
             for i in range(NE):
                 a = np.linspace(-1, 1, points)
@@ -130,7 +132,7 @@ def build3D(fname, MF, MT, points, graphType):
             ax.set_xlim(1.5e7, 0)   
             ax.set_ylim(np.min(a), np.max(a))
             ax.set_zlim(0, np.max(S))
-            ax.set_xlabel('Ea, lab. E7*eV')
+            ax.set_xlabel('$E_\\alpha, lab. 10^7eV$')
             ax.set_ylabel(ylabel)
             ax.set_zlabel(zlabel)
             ax.view_init(elev, azim, roll)
@@ -139,12 +141,18 @@ def build3D(fname, MF, MT, points, graphType):
 
         if (graphType == 'kinematics'):
 
+            elev=30.
+            azim=210. 
+            roll=0.
+
             cos_Theta, E_n, S, isData = processor.angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData)
 
             folderName = 'kinematics/'
-            ylabel = 'cos(mu)'
-            zlabel = 'En, eV'
-            ax = plt.figure().add_subplot(projection='3d')
+            ylabel = 'cos $\\theta$'
+            zlabel = '$E_n$, MeV'
+
+            fig = plt.figure(figsize=(8, 8))
+            ax = fig.add_subplot(111, projection='3d')
 
             for i in range(NE):
                 a = np.linspace(-1, 1, points)
@@ -164,7 +172,7 @@ def build3D(fname, MF, MT, points, graphType):
             ax.set_xlim(0, np.max(E_in))
             ax.set_ylim(-1., 1.)
             ax.set_zlim(0, np.max(E_n))
-            ax.set_xlabel('Ea, eV')
+            ax.set_xlabel('$E_{\\alpha}$, MeV')
             ax.set_ylabel(ylabel)
             ax.set_zlabel(zlabel)
             ax.view_init(elev, azim, roll)
