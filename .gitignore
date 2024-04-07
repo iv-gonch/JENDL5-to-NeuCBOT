@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 *.vscode
+*.DS_Store
 test/
 processed/
 reshaped/
@@ -9,3 +10,8 @@ downloaded/
 graphs2D/
 graphs3D/
 spectra/
+spectraSAVE/
+En_distribution/
+angle_distribution/
+rebin/
+rebinTotalXS/

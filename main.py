@@ -9,6 +9,7 @@ import sys
 # import chemistry
 import converter
 import processor
+import adjuster
 # import polynomials
 import plotter
 
@@ -53,6 +54,15 @@ def main():
             print('Making sprctra data of', fname, 'MF'+ str(MF), 'MT' + str(MT), file=sys.stdout)
             NK, NE, E_in, S, isData = processor.getEnergyAngleDistribtion(fname, MF, MT, points, normcheck = True)
             processor.angle2spectrum(fname, MF, MT, points, NK, NE, E_in, S, isData)
+        
+        if arg == '-adjust':
+            fname = sys.argv[sys.argv.index(arg)+1]
+            MF = int(sys.argv[sys.argv.index(arg)+2])
+            MT = int(sys.argv[sys.argv.index(arg)+3])
+            points = int(sys.argv[sys.argv.index(arg)+4])
+            dE = int(sys.argv[sys.argv.index(arg)+5])
+            print('Adjusting file', fname, file=sys.stdout)
+            adjuster.neucbotIn(fname, MF, MT, points, dE)   # [dE] = eV
 
 if __name__ == '__main__':
 
