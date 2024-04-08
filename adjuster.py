@@ -123,8 +123,8 @@ def neucbotIn(fname, MF, MT, points, dE_a):   # dE_a = 10000 eV (= 10 keV)
             TotXS[NS] = float(line.split()[1])
             NS += 1
         f.close()
-        # for i in range(newDirLength):
-        #     FINdist[i] *= TotXS[i]
+        for i in range(newDirLength):
+            FINdist[i] *= TotXS[i]
         # if not os.path.isdir("../neucbot/Data/Isotopes/" + \
         #                      fname.split("_")[0] + "/" + fname.replace("_", "") + "/JendlOut"):   
         #     os.mkdir("../neucbot/Data/Isotopes/" + \
@@ -137,7 +137,7 @@ def neucbotIn(fname, MF, MT, points, dE_a):   # dE_a = 10000 eV (= 10 keV)
             f = open("rebin/" + fname + "/outputE" + str("{:.4f}".format(E_aRebin[i]/1e6)), "w")    # запись в папку ENDF6-reader/rebin/
             # f = open("../neucbot/Data/Isotopes/" + fname.split("_")[0] + "/" + fname.replace("_", "") + \
             #           "/JendlOut/outputE" + str("{:.4f}".format(E_aRebin[i]/1e6)), "w")    # запись в neucbot/
-            if (minE_a > E_aRebin[i] or E_aRebin[i] > maxE_a):
+            if (minE_a > E_aRebin[i] or E_aRebin[i] > maxE_a or TotXS[i] == 0):
                 f.write("EMPTY")
             else:    
                 f.write("# Incident particle energy (MeV) = \n# " + str(E_aRebin[i]/1e6) + "\n#\n" +\
