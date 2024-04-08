@@ -136,7 +136,7 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, dist_angle, isData):# и
         n = chemistry.getMass(1)    # в эВ
 
         Q = In + a - Out - n    # в эВ
-        print(n/1e6, a/1e6, In/1e6, Out/1e6, Q/1e6)
+        # print(n/1e6, a/1e6, In/1e6, Out/1e6, Q/1e6)
 
         E_n = np.zeros((NE, points), dtype=float)
         E_n_cm = np.zeros_like(E_n)
@@ -159,6 +159,8 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, dist_angle, isData):# и
                      "E_n lab,eV distribution \n")
 
             longLine = (n+Out) * (Out*(Q+E_a[i]) - a*E_a[i])
+            E_initial = In + a + E_a[i]
+            Line = n*E_initial+(Out**2-a**2-n**2-In**2)/2-(a+E_a[i])*n
             
             E_treshold_lab = 0.
 
@@ -169,11 +171,20 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, dist_angle, isData):# и
                 continue
             for j in range(points): 
                 shortLine = 2.* a * E_a[i] * n * cos_Theta[j]**2.
+                x = np.sqrt(a*E_a[i]*n)*cos_Theta[j]
+
                 if (cos_Theta[j] > 0.):
-                    E_n[i,j] = (shortLine+longLine + math.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2.
+                    E_n[i,j] = (2*x + 2*np.sqrt(x**2-x*E_initial * \
+                                Line))/(E_initial**2) - \
+                                (Line)/(E_initial)
+                    # E_n[i,j] = (shortLine+longLine + math.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2.
                     # print(E_n[i,j]/1e6)
                 else:
-                    E_n[i,j] = (shortLine+longLine - math.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2.      
+                    E_n[i,j] = (2*x - 2*np.sqrt(x**2-x*E_initial * \
+                                Line))/(E_initial**2) - \
+                                (Line)/(E_initial)
+                    # E_n[i,j] = (shortLine+longLine - math.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2. 
+                print(E_n[i,j])
                 dist_En[i,j] = dist_angle[i,j] * \
                     (((a+Out)/math.sqrt(16*n*E_n[i,j]*a*E_a[i])) + \
                      (((n+Out)*(Out*(Q+E_a[i])-a*E_a[i]))/\
