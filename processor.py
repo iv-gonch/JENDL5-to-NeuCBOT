@@ -128,15 +128,19 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, dist_angle, isData):# и
 
         ZA_in = Z*1000 + A  
         In = chemistry.getMass(ZA_in)
+        print(In/1e6)
 
-        ZA_out = (Z+2)*1000 + (A+1)
+        ZA_out = (Z+2)*1000 + (A+3)
         Out = chemistry.getMass(ZA_out)
+        print(Out/1e6)
 
         a = chemistry.getMass(2004) # в эВ
+        print(a/1e6)
         n = chemistry.getMass(1)    # в эВ
+        print(n/1e6)
 
         Q = In + a - Out - n    # в эВ
-        # print(n/1e6, a/1e6, In/1e6, Out/1e6, Q/1e6)
+        print(Q/1e6)
 
         E_n = np.zeros((NE, points), dtype=float)
         E_n_cm = np.zeros_like(E_n)
@@ -158,10 +162,10 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, dist_angle, isData):# и
             f2.write("Incident particle energy (eV) = \n" + str(E_a[i]) + "\n\n" + \
                      "E_n lab,eV distribution \n")
 
-            longLine = (n+Out) * (Out*(Q+E_a[i]) - a*E_a[i])
-            E_initial = In + a + E_a[i]
-            Line = n*E_initial+(Out**2-a**2-n**2-In**2)/2-(a+E_a[i])*n
-            
+            # longLine = (n+Out) * (Out*(Q+E_a[i]) - a*E_a[i])    # изначально было
+            # E_initial = In + a + E_a[i]     # из четырёхимпульсов
+            # Line = n*E_initial+(Out**2-a**2-n**2-In**2)/2-(a+E_a[i])*n  # из четырёхимпульсов
+
             E_treshold_lab = 0.
 
             if (Q < 0):
@@ -170,21 +174,31 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, dist_angle, isData):# и
                 print (E_a[i], "= E_a < E_treshold =", E_treshold_lab)
                 continue
             for j in range(points): 
-                shortLine = 2.* a * E_a[i] * n * cos_Theta[j]**2.
-                x = np.sqrt(a*E_a[i]*n)*cos_Theta[j]
+                # shortLine = 2.* a * E_a[i] * n * cos_Theta[j]**2.   # изначально было
+                # x = np.sqrt(a*E_a[i]*n)*cos_Theta[j]    # из четырёхимпульсов
+
+                A = Out + n
+                B2 = 4. * E_a[i] * a * n * (cos_Theta[j])**2.
+                C = E_a[i]*a - E_a[i]*Out - Q*Out
 
                 if (cos_Theta[j] > 0.):
-                    E_n[i,j] = (2*x + 2*np.sqrt(x**2-x*E_initial * \
-                                Line))/(E_initial**2) - \
-                                (Line)/(E_initial)
+                    E_n[i,j] = 1. /(4.* (A**2.) ) * (2.*B2 - 2.*np.sqrt(B2*(B2-4.*A*C))-4.*A*C)
+
+                    # E_n[i,j] = (2*x + 2*np.sqrt(x**2-x*E_initial * \
+                    #             Line))/(E_initial**2) - \             # из четырёхимпульсов
+                    #             (Line)/(E_initial)
+
                     # E_n[i,j] = (shortLine+longLine + math.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2.
-                    # print(E_n[i,j]/1e6)
+                    # print(E_n[i,j]/1e6)   # изначально было (хорошие ответы при сложении эВ с шт. нейтронов)
                 else:
-                    E_n[i,j] = (2*x - 2*np.sqrt(x**2-x*E_initial * \
-                                Line))/(E_initial**2) - \
-                                (Line)/(E_initial)
+                    E_n[i,j] = 1. /(4.* (A**2.) ) * (2.*B2 + 2.*np.sqrt(B2*(B2-4.*A*C))-4.*A*C)
+
+                    # E_n[i,j] = (2*x - 2*np.sqrt(x**2-x*E_initial * \
+                    #             Line))/(E_initial**2) - \             # из четырёхимпульсов
+                    #             (Line)/(E_initial)
+
                     # E_n[i,j] = (shortLine+longLine - math.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2. 
-                print(E_n[i,j])
+                # print(E_n[i,j])   # изначально было (хорошие ответы при сложении эВ с шт. нейтронов)
                 dist_En[i,j] = dist_angle[i,j] * \
                     (((a+Out)/math.sqrt(16*n*E_n[i,j]*a*E_a[i])) + \
                      (((n+Out)*(Out*(Q+E_a[i])-a*E_a[i]))/\
