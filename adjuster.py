@@ -128,8 +128,8 @@ def neucbotIn(fname, MF, MT, points, dE_a):   # dE_a = 10000 eV (= 10 keV)
                 NS += 1
         f.close()
 
-        # for i in range(newDirLength):
-            # FINdist[i] *= TotXS[i]
+        for i in range(newDirLength):
+            FINdist[i] *= TotXS[i]
         
         # if not os.path.isdir("../neucbot/Data/Isotopes/" + \
         #                      fname.split("_")[0] + "/" + fname.replace("_", "") + "/JendlOut"):   
