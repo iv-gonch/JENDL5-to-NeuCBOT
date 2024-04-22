@@ -118,17 +118,24 @@ def neucbotIn(fname, MF, MT, points, dE_a):   # dE_a = 10000 eV (= 10 keV)
                          distRebin[int(minE_a/dE_a):int(maxE_a/dE_a)+1,b+1]) / 2.
         TotXS = np.zeros(newDirLength)
         NS = 0
+
+        # добавить проверку на наличие интерполированных сечений,
+        # и создание этих сеченний (см. Auxiliary folder/XS_Rebin)
         f = open("./rebinTotalXS/MT" + str(MT) + "/" + fname)
         for line in f.readlines():  # считываем построчно
-            TotXS[NS] = float(line.split()[1])
-            NS += 1
+            if (line[0] != "#"):
+                TotXS[NS] = float(line.split()[1])
+                NS += 1
         f.close()
-        for i in range(newDirLength):
-            FINdist[i] *= TotXS[i]
+
+        # for i in range(newDirLength):
+            # FINdist[i] *= TotXS[i]
+        
         # if not os.path.isdir("../neucbot/Data/Isotopes/" + \
         #                      fname.split("_")[0] + "/" + fname.replace("_", "") + "/JendlOut"):   
         #     os.mkdir("../neucbot/Data/Isotopes/" + \
         #              fname.split("_")[0] + "/" + fname.replace("_", "") + "/JendlOut")
+            
         if not os.path.isdir("rebin"):   
             os.mkdir("rebin")
         if not os.path.isdir("rebin/" + fname):   
@@ -144,5 +151,5 @@ def neucbotIn(fname, MF, MT, points, dE_a):   # dE_a = 10000 eV (= 10 keV)
                         "# En.lab,MeV distribution\n")
                 for j in range(newFileLength): 
                     f.write(str("{:11.6f}".format(FIN_E_n[j]/1e6)) + " "*2 + \
-                            str(FINdist[i,j]) + "\n")
+                            str(FINdist[i,j]*dE_n) + "\n")
             f.close()
