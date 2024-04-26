@@ -143,7 +143,6 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, dist_angle, isData):# и
         # print(Q/1e6)
 
         E_n = np.zeros((NE, points), dtype=float)
-        E_n_cm = np.zeros_like(E_n)
         E_a = np.zeros(NE, dtype=float)
         cos_Theta = np.linspace(-1, 1, points)
 
@@ -165,166 +164,41 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, dist_angle, isData):# и
             longLine = (n+Out) * (Out*(Q+E_a[i]) - a*E_a[i])    # изначально было
             # E_initial = In + a + E_a[i]     # из четырёхимпульсов
             # Line = n*E_initial+(Out**2-a**2-n**2-In**2)/2-(a+E_a[i])*n  # из четырёхимпульсов
+            
+            # C1 = (n + Out) / (4.* np.sqrt(n*a*E_a[i]))
+            # C2 = (C1 * longLine) / ((n + Out)**2)
 
             E_treshold_lab = 0.
-
             if (Q < 0):
                 E_treshold_lab = -Q*(1. + a/In - Q/(2.*In)) # в эВ
             if (E_a[i] < E_treshold_lab):
                 print (E_a[i], "= E_a < E_treshold =", E_treshold_lab)
                 continue
             for j in range(points): 
-                shortLine = 2.* a * E_a[i] * n * cos_Theta[j]**2.   # изначально было
-                # x = np.sqrt(a*E_a[i]*n)*cos_Theta[j]    # из четырёхимпульсов
-
-                # A = Out + n
-                # B2 = 4. * E_a[i] * a * n * (cos_Theta[j])**2.
-                # C = E_a[i]*a - E_a[i]*Out - Q*Out
-
+                shortLine = 2.* a * E_a[i] * n * cos_Theta[j]**2.   
                 if (cos_Theta[j] > 0.):
-                    # E_n[i,j] = 1. /(4.* (A**2.) ) * (2.*B2 - 2.*np.sqrt(B2*(B2-4.*A*C))-4.*A*C)
-
-                    # E_n[i,j] = (2*x + 2*np.sqrt(x**2-x*E_initial * \
-                    #             Line))/(E_initial**2) - \             # из четырёхимпульсов
-                    #             (Line)/(E_initial)
-
-                    E_n[i,j] = (shortLine+longLine + math.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2.
-                    # print(E_n[i,j]/1e6)   # изначально было (хорошие ответы при сложении эВ с шт. нейтронов)
+                    E_n[i,j] = (shortLine+longLine + np.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2.
                 else:
-                    # E_n[i,j] = 1. /(4.* (A**2.) ) * (2.*B2 + 2.*np.sqrt(B2*(B2-4.*A*C))-4.*A*C)
+                    E_n[i,j] = (shortLine+longLine - np.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2. 
 
-                    # E_n[i,j] = (2*x - 2*np.sqrt(x**2-x*E_initial * \
-                    #             Line))/(E_initial**2) - \             # из четырёхимпульсов
-                    #             (Line)/(E_initial)
-
-                    E_n[i,j] = (shortLine+longLine - math.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2. 
-                # print(E_n[i,j])   # изначально было (хорошие ответы при сложении эВ с шт. нейтронов)
+                # C1 = (n+Out)/\
+                #     (2.*np.sqrt(a*n*E_a[i]))          # альтернативное вычисление якобиана
+                # C2 = (a*E_a[i]-Out*E_a[i]-Out*Q)/\
+                #     (2.*np.sqrt(a*n*E_a[i]))  
+                
+                # dist_En[i,j] = dist_angle[i,j] * \
+                #     C1/np.sqrt(E_n[i,j])/2. + C2/(np.sqrt(E_n[i,j]**3))/2.
+                    
                 dist_En[i,j] = dist_angle[i,j] * \
-                    (((a+Out)/math.sqrt(16*n*E_n[i,j]*a*E_a[i])) + \
+                    (((a+Out)/np.sqrt(16*n*E_n[i,j]*a*E_a[i])) + \
                      (((n+Out)*(Out*(Q+E_a[i])-a*E_a[i]))/\
-                      (4*(a+Out)*math.sqrt(E_n[i,j]**3*n*a*E_a[i]))))   # f(mu) * d mu = f(En) * (d mu / d En) dEn
-# =========
-                E_n_cm[i,j] = E_n[i,j] - \
-                    2.*math.sqrt(n*E_n[i,j]*E_a[i]/a)*cos_Theta[j] + \
-                        n*E_a[i]/a    # ПЕРЕПРОВЕРИТЬ!!! ОШИБКА!!!
-# =========
+                      (4*(a+Out)*np.sqrt(E_n[i,j]**3*n*a*E_a[i]))))   # f(mu) * d mu = f(En) * (d mu / d En) dEn
+
                 f1.write(str("{:10.7f}".format(cos_Theta[j])) + " " + \
                          str("{:12.10f}".format(dist_angle[i,j])) + "\n")
                 f2.write(str("{:10.1f}".format(E_n[i,j])) + " " + \
                          str("{:e}".format(dist_En[i,j])) + "\n")
             
-                # f1.write(str("{:10.7f}".format(cos_Theta[j])) + " " + str("{:16.7f}".format(E_n[i,j])) + " " + \
-                #          str("{:16.7f}".format(E_n_cm[i,j]))  + " " + str("{:9.7f}".format(dist_angle[i,j])  ) + "\n")
             f1.close()
             f2.close()
         return cos_Theta, E_n, dist_En, isData
-    
-
-# def NeuCBOTdataachiever(fname, MF, MT, NK, NE, E_in, Coeff, isData):
-
-#     if (isData):  # проверка на наличие данных для вычисления спектра
-
-#         # ============= создаём массив коэффициентов Лежандра Coeff
-
-#         NK = 1  # есть в названии директории. Отвечает за количество различных вылетющих частц
-#         counter = 0 # счётчик по эенргии
-#         Coeff = []  # будущий двумерный массив коэффициентов Лежандра
-
-#         if not os.path.isdir("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT)):  # проверка наличия директории
-#             converter.separateData(fname, int(MF), int(MT))
-
-#         while (True):   # пока не закончатся файлы в директории /reshaped/fname/MF**_MT***/
-            
-#             if not os.path.isfile("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter)):    # на будущее, когда будет несколько вылетающих частиц
-#                 # когда прошли все E_in для нынешнего NK
-#                 if os.path.isfile("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter)):  
-#                     NK += 1
-#                     print(fname, "MF", MF, "MT", MT, "contains data of more than one product particle") # проверка количества вылетающих частиц 
-#                 else:
-#                     break   # остановиться когда прошли все NK и E_in 
-
-#             f = open("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter), "r")
-#             NS = 0  # номер строки в файле 
-            
-#             for line in f.readlines():  # считываем построчно 
-#                 if (NS == 6):   # строка, где записана энергия влетающей альфа-частицы 
-#                     E_in.append(float(line))    # записываем энергию альфа частицы 
-#                     Coeff.append([])    # создаём место для записи коэффициентов Лежандра 
-#                 if (NS > 8 and line != ""):    # строки, где хранятся коэффициенты Лежандра 
-#                     Coeff[counter].append(float(line)) 
-#                 NS += 1 
-#             counter += 1 
-
-#         # =============== проводим вычисления cos(theta) от E_n
-
-#         ele = fname.split("_")[0]
-#         Z = int(chemistry.getZ(ele))
-#         A = int(fname.split("_")[1])
-
-#         ZA_in = Z*1000 + A  
-#         In = chemistry.getMass(ZA_in)
-
-#         ZA_out = (Z+2)*1000 + (A+1)
-#         Out = chemistry.getMass(ZA_out)
-
-#         a = chemistry.getMass(2004)
-#         n = chemistry.getMass(1)
-
-#         Q = In + a - Out - n
-
-#         E_a = np.zeros(NE, dtype=float)
-#         E_n = np.zeros(200, dtype=float)
-#         cos_Theta = np.zeros_like(E_n)
-#         dist_angle = np.zeros_like(E_n)
-
-#         if not os.path.isdir("NeuCBOT/" + ele + "/" + ele + str(A)): # проверка наличия директории
-#             os.mkdir("NeuCBOT/" + ele + "/" + ele + str(A))
-
-#         for i in range(NE): # для каждой энергии
-
-#             f1 = open("NeuCBOT/" + ele + "/" + ele + str(A) + "/JendlOut", "w")
-
-#             E_a[i] = E_in[i]/1000000    # eV to MeV
-
-#             longLine = (n+Out) * (Out * (Q+E_a[i]) - a*E_a[i])
-
-#             E_treshold_lab = 0.
-#             if (Q < 0):
-#                 E_treshold_lab = -Q*(1. + a/In - Q/(2.*In)) 
-#             if (E_a[i] < E_treshold_lab):
-#                 print (E_a[i], "= E_a < E_treshold =", E_treshold_lab)
-#                 continue
-            
-#             f1.write("# a + " + fname + " : neutron spectrum\n\
-#                         # E-incident =\t" + str(E_a[i]) + ", eV \n\
-#                         # \n\
-#                         # energies =\t" + str(NE) + " \n\
-#                         # E-out    Total       Direct    Pre-equil.  Mult. preeq  Compound    PE ratio   BU ratio    Stripping   Knock-out   Break-up")
-
-#             for j in range(200):    # по энергиям нейтронов от 0.1 до 20 МэВ с шагом 0.1 
-                
-#                 E_n[j] = (j+1)*0.1
-#                 cos_Theta[j] = (E_n[j] * (n + Out)**2 - longLine) / math.sqrt(4 * E_n[j] * (n + Out)**2 * a * n * E_a[i])
-
-#             maxNW = len(max(Coeff[:], key=len)) # максимальное количество чисел в файле
-
-#             lmax = maxNW+1
-#             P = np.ones((200, lmax), dtype = float) # создаём двумерный массив размерности [points]x[lmax]
-#             x = cos_Theta
-#             P[:,1] = [x[i] for i in range(200)]  # задаём первый член полинома = х (нулевой и так уже = 1.)   
-#             for l in range(lmax-2): 
-#                 P[:,l+2] = ((2*l+3)*x*P[:,l+1] - (l+1)*P[:,l])/(l+2) # рекуррентная формула та же, но вместо n подставленно n+1
-
-
-#             dist_angle = np.ones((NE, 200), dtype = float)   # массив значений выхода в точках. В мауале это p_i[E_in, cos(mu)]
-#             dist_angle /= 2.
-#             A = np.zeros((NE, maxNW+1), dtype = float)    # массив коэффициентов Лежандра
-
-#             NW = len(Coeff[i])
-#             for j in range(NW): 
-#                 A[i,j] = Coeff[i][j]    # A[NE, l] просто ради массива numpy
-#             for j in range(200): # для каждой точки
-#                 for l in range(maxNW):
-#                     dist_angle[i,j] += P[j,l+1] * A[i,l] * (2.*(l+1.) + 1.)/2.     # (l+1 нужен тк в формуле из мануала сумма начинается с l = 1) 
-
-#             f1.close()

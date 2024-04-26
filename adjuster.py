@@ -108,7 +108,7 @@ def neucbotIn(fname, MF, MT, points, dE_a):   # dE_a = 10000 eV (= 10 keV)
                 NEWdistFunc(E_nRebin[int(minE_n[i]/dE_n):int(maxE_n[i]/dE_n)])
         E_nBinSize = 100e3  # размер бина в файле
         newFileLength = int(NEWmaxE_n/E_nBinSize)
-        FIN_E_n = np.linspace(E_nBinSize, NEWmaxE_n, newFileLength) 
+        FIN_E_n = np.linspace(E_nBinSize, NEWmaxE_n, newFileLength) # от 0.1 до 15.0 МэВ с шагом 0.1 МэВ
         FINdist = np.zeros((newDirLength,newFileLength))
         for j in range(newFileLength):  # перебор по бинам энергий нейтронов
             for b in range(newArrayLength-1):
@@ -151,5 +151,5 @@ def neucbotIn(fname, MF, MT, points, dE_a):   # dE_a = 10000 eV (= 10 keV)
                         "# En.lab,MeV distribution\n")
                 for j in range(newFileLength): 
                     f.write(str("{:11.6f}".format(FIN_E_n[j]/1e6)) + " "*2 + \
-                            str(FINdist[i,j]*dE_n) + "\n")
+                            str(FINdist[i,j]*1e6) + "\n")   # перевод эВ->МэВ для сохранения нормировки
             f.close()
