@@ -176,6 +176,10 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, dist_angle, isData):# и
                 continue
             for j in range(points): 
                 shortLine = 2.* a * E_a[i] * n * cos_Theta[j]**2.   
+
+                if (shortLine**2.+ 2.*shortLine*longLine < 0):
+                    print(Q+E_a[i])
+
                 if (cos_Theta[j] > 0.):
                     E_n[i,j] = (shortLine+longLine + np.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2.
                 else:
