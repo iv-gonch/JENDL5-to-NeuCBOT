@@ -74,8 +74,8 @@ def neucbotIn(fname, MF, MT, points, dE_a):   # dE_a = 10000 eV (= 10 keV)
         # E_nBase   [dirLen, points]    # разные интервалы по энергии,
         # distBase  [dirLen, points]    # фиксированное к-во точек (=200). 
         dirLen = len(E_aBase)
-        minE_a = int(np.ceil (min(E_aBase)/dE_a)*dE_a)  # при целом dE_a всегда целое 
-        maxE_a = int(np.floor(max(E_aBase)/dE_a)*dE_a)  # при целом dE_a всегда целое 
+        minE_a = int(np.ceil (np.min(E_aBase)/dE_a)*dE_a)  # при целом dE_a всегда целое 
+        maxE_a = int(np.floor(np.max(E_aBase)/dE_a)*dE_a)  # при целом dE_a всегда целое 
         NEWminE_a = 0
         NEWmaxE_a = 15e6  
         newDirLength = int((NEWmaxE_a - NEWminE_a)/dE_a + 1)   # длина новой директории (./rebin/X_**)
@@ -100,8 +100,8 @@ def neucbotIn(fname, MF, MT, points, dE_a):   # dE_a = 10000 eV (= 10 keV)
         minE_n = np.zeros(newDirLength)
         maxE_n = np.zeros(newDirLength)
         for i in range(newDirLength):
-            minE_n[i] = int(np.ceil (min(E_nTransitional[i])/dE_n)*dE_n)   # при dE_a>1eV всегда целое количество эВ
-            maxE_n[i] = int(np.floor(max(E_nTransitional[i])/dE_n)*dE_n)   # при dE_a>1eV всегда целое количество эВ
+            minE_n[i] = int(np.ceil (np.min(E_nTransitional[i])/dE_n)*dE_n)   # при dE_a>1eV всегда целое количество эВ
+            maxE_n[i] = int(np.floor(np.max(E_nTransitional[i])/dE_n)*dE_n)   # при dE_a>1eV всегда целое количество эВ
             if (minE_a <= E_aRebin[i] and E_aRebin[i] <= maxE_a):
                 NEWdistFunc = interpolate.interp1d(E_nTransitional[i], distTransitional[i])
                 distRebin[i,int(minE_n[i]/dE_n):int(maxE_n[i]/dE_n)] = \
