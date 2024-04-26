@@ -121,7 +121,9 @@ def neucbotIn(fname, MF, MT, points, dE_a):   # dE_a = 10000 eV (= 10 keV)
 
         # добавить проверку на наличие интерполированных сечений,
         # и создание этих сеченний (см. Auxiliary folder/XS_Rebin)
-        f = open("./rebinTotalXS/MT" + str(MT) + "/" + fname)
+
+        f = open("./rebinTotalXS/MT" + str(MT) + "/" + fname) # правильно
+        # f = open("./rebinTotalXS/MT201/" + fname)   # НЕПРАВИЛЬНО!!!!
         for line in f.readlines():  # считываем построчно
             if (line[0] != "#"):
                 TotXS[NS] = float(line.split()[1])
