@@ -342,9 +342,9 @@ echo "Start!"
 
 # # # =======================================================================
 
-echo "adjusting E_n distributions..."
+# echo "adjusting E_n distributions..."
 
-#                          isotop MF MT points dEa [eV]
+#                         isotope MF MT points dEa[eV]
 # python3 ./main.py -adjust Al_27 6 50 101 10000 &&
 
 # python3 ./main.py -adjust B_10 6 50 101 10000 &&
@@ -353,9 +353,9 @@ echo "adjusting E_n distributions..."
 
 # python3 ./main.py -adjust Be_9 6 50 101 10000 &&
 
-python3 ./main.py -adjust C_12 6 50 101 10000 &&
+# python3 ./main.py -adjust C_12 6 50 101 10000 &&
 
-python3 ./main.py -adjust C_13 6 50 101 10000 &&
+# python3 ./main.py -adjust C_13 6 50 101 10000 &&
 
 # python3 ./main.py -adjust F_19 6 50 101 10000 &&
 
@@ -391,5 +391,11 @@ python3 ./main.py -adjust C_13 6 50 101 10000 &&
 # python3 ./main.py -adjust O_18 6 53 101 10000 &&
 
 # python3 ./main.py -adjust O_18 6 54 101 10000 &&
+
+
+python3 ./main.py -nucleus C_12 &&
+
+python3 ./main.py -nucleus C_13 &&
+
 
 echo "Done!"
