@@ -49,8 +49,7 @@ def legendre2angle(Coeff, points, NE):  # из коэффициентов леж
     return dist_angle
 
 
-def getEnergyAngleDistribtion(fname, MF, MT, points, normcheck):
-    
+def getEnergyAngleDistribtion(fname, MT, points, normcheck):
     NK = 1  # есть в названии директории. Отвечает за количество различных вылетющих частц
     counter = 0 # счётчик по эенргии
     E_in = []   # массив энергий налетающих альфа частиц
@@ -58,20 +57,19 @@ def getEnergyAngleDistribtion(fname, MF, MT, points, normcheck):
 
 #========= сохраняем данный из файлов в массивы E_in, Coeff,=========#
 
-    if not os.path.isdir("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT)):  # проверка наличия директории
-        converter.separateData(fname, int(MF), int(MT))
+    if not os.path.isdir("reshaped/" + fname + "/MF6_MT" + str(MT)):  # проверка наличия директории
+        converter.separateData(fname, MT)
 
     while (True):   # пока не закончатся файлы в директории /reshaped/fname/MF**_MT***/
-        
-        if not os.path.isfile("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter)):    # на будущее, когда будет несколько вылетающих частиц
+        if not os.path.isfile("reshaped/" + fname + "/MF6_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter)):    # на будущее, когда будет несколько вылетающих частиц
             # когда прошли все E_in для нынешнего NK
-            if os.path.isfile("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter)):  
+            if os.path.isfile("reshaped/" + fname + "/MF6_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter)):  
                 NK += 1
-                print(fname, "MF", MF, "MT", MT, "contains data of more than one product particle") # проверка количества вылетающих частиц
+                print(fname, "MF = 6 MT =", MT, "contains data of more than one product particle") # проверка количества вылетающих частиц
             else:
                 break   # остановиться когда прошли все NK и E_in 
 
-        f = open("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter), "r")
+        f = open("reshaped/" + fname + "/MF6_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter), "r")
         NS = 0  # номер строки в файле
         
         for line in f.readlines():  # считываем построчно
@@ -87,7 +85,7 @@ def getEnergyAngleDistribtion(fname, MF, MT, points, normcheck):
 #========= вычисляем и записываем значение угла (через коэффициенты Лежандра) =========#
 
     if (len(Coeff[:]) == 0):    #  если в файле нет данных 
-        print(fname, "MF"+ str(MF), "MT" + str(MT), "has no Legendre coefficients!")
+        print(fname, "MF 6 MT" + str(MT), "has no Legendre coefficients!")
         NK, NE, E_in, dist_angle, isData = 0, 0, [], [], False
     else:
         NE = len(Coeff) # число различных энергий налетающей альфа-частицы 
@@ -104,8 +102,8 @@ def getEnergyAngleDistribtion(fname, MF, MT, points, normcheck):
     return NK, NE, E_in, dist_angle, isData  # можно не возвращать NE тк это длина E_in. Но это надо исправлять везде, где вызывается функция
 
 
-def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, dist_angle, isData):# из распределения theta_neutron(E_alpha) получаем зависимость E_neutron(E_alpha) по кинематической формуле без учёта релятивизма
-    
+def angle2spectrum(fname, MT, points, NK, NE, E_in, dist_angle, isData):# из распределения theta_neutron(E_alpha) получаем зависимость E_neutron(E_alpha) по кинематической формуле без учёта релятивизма
+    MF = int(6)
     if (isData):  # проверка на наличие данных для вычисления спектра
 
         if not os.path.isdir("angle_distribution"):  # проверка наличия директории
@@ -128,19 +126,14 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, dist_angle, isData):# и
 
         ZA_in = Z*1000 + A  
         In = chemistry.getMass(ZA_in)
-        # print(In/1e6)
 
         ZA_out = (Z+2)*1000 + (A+3)
         Out = chemistry.getMass(ZA_out)
-        # print(Out/1e6)
 
         a = chemistry.getMass(2004) # в эВ
-        # print(a/1e6)
         n = chemistry.getMass(1)    # в эВ
-        # print(n/1e6)
 
         Q = In + a - Out - n    # в эВ
-        # print(Q/1e6)
 
         E_n = np.zeros((NE, points), dtype=float)
         E_a = np.zeros(NE, dtype=float)
@@ -162,11 +155,6 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, dist_angle, isData):# и
                      "E_n lab,eV distribution \n")
 
             longLine = (n+Out) * (Out*(Q+E_a[i]) - a*E_a[i])    # изначально было
-            # E_initial = In + a + E_a[i]     # из четырёхимпульсов
-            # Line = n*E_initial+(Out**2-a**2-n**2-In**2)/2-(a+E_a[i])*n  # из четырёхимпульсов
-            
-            # C1 = (n + Out) / (4.* np.sqrt(n*a*E_a[i]))
-            # C2 = (C1 * longLine) / ((n + Out)**2)
 
             E_treshold_lab = 0.
             if (Q < 0):
@@ -184,14 +172,6 @@ def angle2spectrum(fname, MF, MT, points, NK, NE, E_in, dist_angle, isData):# и
                     E_n[i,j] = (shortLine+longLine + np.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2.
                 else:
                     E_n[i,j] = (shortLine+longLine - np.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2. 
-
-                # C1 = (n+Out)/\
-                #     (2.*np.sqrt(a*n*E_a[i]))          # альтернативное вычисление якобиана
-                # C2 = (a*E_a[i]-Out*E_a[i]-Out*Q)/\
-                #     (2.*np.sqrt(a*n*E_a[i]))  
-                
-                # dist_En[i,j] = dist_angle[i,j] * \
-                #     C1/np.sqrt(E_n[i,j])/2. + C2/(np.sqrt(E_n[i,j]**3))/2.
                     
                 dist_En[i,j] = dist_angle[i,j] * \
                     (((a+Out)/np.sqrt(16*n*E_n[i,j]*a*E_a[i])) + \
