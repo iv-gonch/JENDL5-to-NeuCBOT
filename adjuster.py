@@ -18,18 +18,6 @@ import processor
 # Делает массивы Ea_Rebin и XS_Rebin и записывает их в neucbot и в result
 def RebinXS(fname, MT, dE_a):
     MF = int(3)
-    
-    if not os.path.isdir("../neucbot/Data/Isotopes/" + \
-                            fname.split("_")[0] + "/" + fname.replace("_", "") + "/JendlOut"):   
-        os.mkdir("../neucbot/Data/Isotopes/" + \
-                    fname.split("_")[0] + "/" + fname.replace("_", "") + "/JendlOut")
-    
-    if not os.path.isdir("./result"):
-        os.mkdir("./result")
-    if not os.path.isdir("./result/" + fname):
-        os.mkdir("./result/" + fname )
-    if not os.path.isdir("./result/" + fname + "/MT" + str(MT)):
-        os.mkdir("./result/" + fname + "/MT" + str(MT))
 
     dirname = fname + "/MF" + str(MF) + "_MT" + str(MT)  # C_13/MF3_MT50
 
@@ -54,12 +42,26 @@ def RebinXS(fname, MT, dE_a):
 
     minE_a = int(np.ceil (np.min(E_a)/dE_a)*dE_a)  # при целом dE_a всегда целое 
     maxE_a = int(np.floor(np.max(E_a)/dE_a)*dE_a)  # при целом dE_a всегда целое 
+    minBinEa = int(minE_a/dE_a)     # для упрощения записи следующих строчек
+    maxBinEa = int(maxE_a/dE_a)+1   # для упрощения записи следующих строчек
 
     E_nFunc = interpolate.interp1d(E_a, X_S)    # интерполяция на основе исходных данных
-    XS_Rebin[int(minE_a/dE_a):int(maxE_a/dE_a)+1] = \
-        E_nFunc(E_aRebin[int(minE_a/dE_a):int(maxE_a/dE_a)+1])  # заполняем сечения с равным шагом по энергии
+    XS_Rebin[minBinEa:maxBinEa+1] = \
+        E_nFunc(E_aRebin[minBinEa:maxBinEa+1])  # заполняем сечения с равным шагом по энергии
     f.close()
     
+    if not os.path.isdir("../neucbot/Data/Isotopes/" + \
+                            fname.split("_")[0] + "/" + fname.replace("_", "") + "/JendlOut"):   
+        os.mkdir("../neucbot/Data/Isotopes/" + \
+                    fname.split("_")[0] + "/" + fname.replace("_", "") + "/JendlOut")
+    
+    if not os.path.isdir("./result"):
+        os.mkdir("./result")
+    if not os.path.isdir("./result/" + fname):
+        os.mkdir("./result/" + fname )
+    if not os.path.isdir("./result/" + fname + "/MT" + str(MT)):
+        os.mkdir("./result/" + fname + "/MT" + str(MT))
+        
     f1 = open("../neucbot/Data/Isotopes/" + \
                 fname.split("_")[0] + "/" + \
                 fname.replace("_", "") + \
@@ -84,8 +86,11 @@ def interpolation(E_aBase, E_nBase, distBase, points, dE_a, dE_n):
     # E_aBase   [dirLen]            # Сырые данные,
     # E_nBase   [dirLen, points]    # разные интервалы по энергии,
     # distBase  [dirLen, points]    # фиксированное к-во точек (=201). 
-    minE_a = int(np.ceil(np.min(E_aBase)/dE_a)*dE_a)  # при целом dE_a всегда целое 
+    minE_a = int(np.ceil (np.min(E_aBase)/dE_a)*dE_a)  # при целом dE_a всегда целое 
     maxE_a = int(np.floor(np.max(E_aBase)/dE_a)*dE_a)  # при целом dE_a всегда целое 
+    minBinEa = int(minE_a/dE_a)     # для упрощения записи следующих строчек
+    maxBinEa = int(maxE_a/dE_a)+1   # для упрощения записи следующих строчек
+
     NEWminE_a = 0
     NEWmaxE_a = 15e6
     newDirLength = int((NEWmaxE_a - NEWminE_a)/dE_a + 1)   # длина новой директории (./result/X_**)
@@ -95,11 +100,11 @@ def interpolation(E_aBase, E_nBase, distBase, points, dE_a, dE_n):
     
     for i in range(points): # алгоритм интерполяции
         E_nFunc = interpolate.interp1d(E_aBase, E_nBase[:,i])   # функция на основе сырых данных
-        E_nTransitional[int(minE_a/dE_a):int(maxE_a/dE_a)+1,i] = \
-            E_nFunc(E_aRebin[int(minE_a/dE_a):int(maxE_a/dE_a)+1])  # заполняем промежуточный массив
+        E_nTransitional[minBinEa:maxBinEa+1,i] = \
+            E_nFunc(E_aRebin[minBinEa:maxBinEa+1])  # заполняем промежуточный массив
         distFunc = interpolate.interp1d(E_aBase, distBase[:,i]) # функция на основе сырых данных
-        distTransitional[int(minE_a/dE_a):int(maxE_a/dE_a)+1,i] = \
-            distFunc(E_aRebin[int(minE_a/dE_a):int(maxE_a/dE_a)+1]) # заполняем промежуточный массив
+        distTransitional[minBinEa:maxBinEa+1,i] = \
+            distFunc(E_aRebin[minBinEa:maxBinEa+1]) # заполняем промежуточный массив
         
     NEWmaxE_n = 15e6    # максммальная энергия нейтрона = 15 МэВ ??
     # dE_n = 100e3    # размер бина по энергии нейтрона 100e3 eV = 0.1 MeV, как в NeuCBOT. Хорошо бы сделать поменьше
@@ -112,11 +117,12 @@ def interpolation(E_aBase, E_nBase, distBase, points, dE_a, dE_n):
     for i in range(newDirLength):
         minE_n[i] = int(np.ceil (np.min(E_nTransitional[i])/dE_n)*dE_n)   # при dE_a>1eV всегда целое количество эВ
         maxE_n[i] = int(np.floor(np.max(E_nTransitional[i])/dE_n)*dE_n)   # при dE_a>1eV всегда целое количество эВ
-        # print(i, minE_n[i], maxE_n[i])
+        minBinEn = int(minE_n[i]/dE_n)-1  # для упрощения записи следующих строчек
+        maxBinEn = int(maxE_n[i]/dE_n)    # для упрощения записи следующих строчек
         if (minE_a <= E_aRebin[i] and E_aRebin[i] <= maxE_a):
             NEWdistFunc = interpolate.interp1d(E_nTransitional[i], distTransitional[i])
-            distRebin[i,int(minE_n[i]/dE_n):int(maxE_n[i]/dE_n)] = \
-            NEWdistFunc(E_nRebin[int(minE_n[i]/dE_n):int(maxE_n[i]/dE_n)])
+            distRebin[i, minBinEn:maxBinEn] = \
+            NEWdistFunc(E_nRebin[minBinEn:maxBinEn])
     
     # E_nBinSize = 100e3  # размер бина в файле
     # newFileLength = int(NEWmaxE_n/E_nBinSize)
