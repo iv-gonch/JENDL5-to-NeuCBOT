@@ -11,6 +11,7 @@ import sys
 import os
 
 import constants
+import chemistry
 # import chemistry
 # import polynomials
 
@@ -30,53 +31,63 @@ def convertENDF(fname): # convert Evaluated Nuclear Data File
     word = ["0"] * 10   # слова из необработанного файла
     new_word = word     # обработанные слова, записываемые в новый файл
 
-    if not os.path.isfile("downloaded/" + fname):   # проверка наличия скачанного файла
+    # if not os.path.isfile("downloaded/" + fname):   # проверка наличия скачанного файла
+    #     print("There is no downloaded", fname, "file!", file=sys.stdout)
+    Z = chemistry.getZ(fname.split("_")[0])
+    Ele = fname.split("_")[0]
+    A = int(fname.split("_")[1])
+    JENDL_fname = "a_" + str("{:03}".format(Z)) + "-" + Ele.capitalize() + "-" + str("{:03}".format(A)) + ".dat"
+
+    if not os.path.isfile("jendl5-a/" + JENDL_fname):   # проверка наличия скачанного файла
         print("There is no downloaded", fname, "file!", file=sys.stdout)
-        # loader.JENDL5(fname)
+        # loader.JENDL5(fname)  # круто бы дописать
+    else:
+        f = open("jendl5-a/" + JENDL_fname) # считываем первую строку чтобы стандартизированно назвать конвертированный файл
+        line1 = f.readline()[12:18] # на этом месте в файлах JENDL-5 записано название элемента и его массовое число
+        ele = line1[:2].strip()     # название элемента
+        A = int(line1[4:])  # массовое число
+        f.close()   # не уверен что после readline() правильно сработает метод readlines(). поэтому открываю и закрываю. Если первая строка не пропустится, то можно забить
 
-    f = open("downloaded/" + fname) # считываем первую строку чтобы стандартизированно назвать конвертированный файл
-    line1 = f.readline()[12:18] # на этом месте в файлах JENDL-5 записано название элемента и его массовое число
-    ele = line1[:2].strip()     # название элемента
-    A = int(line1[4:])  # массовое число
-    f.close()   # не уверен что после readline() правильно сработает метод readlines(). поэтому открываю и закрываю. Если первая строка не пропустится, то можно забить
+        f = open("jendl5-a/" + JENDL_fname)     
+        print("New file", fname, "will be saved as ./converted/", ele + "_" + str(A), file=sys.stdout)
+        
+        if not os.path.isdir("converted"):
+            os.mkdir("converted")
+        f1= open("converted/" + ele + "_" + str(A), "w")
 
-    f = open("downloaded/" + fname)     
-    print("New file", fname, "will be saved as ./converted/", ele + "_" + str(A), file=sys.stdout)
-    
-    if not os.path.isdir("converted"):
-        os.mkdir("converted")
-    f1= open("converted/" + ele + "_" + str(A), "w")
+        for line in f.readlines():  # читаем файл построчно
 
-    for line in f.readlines():  # читаем файл построчно
+            for i in range(len(constants.ENDF.lineMarkup)-1): # разбиваем его на "слова" в соответсвии с правилами ENDF (первые 6 слов - 11 символов и тд.)
+                word[i] = line[constants.ENDF.lineMarkup[i]:constants.ENDF.lineMarkup[i+1]]
 
-        for i in range(len(constants.ENDF.lineMarkup)-1): # разбиваем его на "слова" в соответсвии с правилами ENDF (первые 6 слов - 11 символов и тд.)
-            word[i] = line[constants.ENDF.lineMarkup[i]:constants.ENDF.lineMarkup[i+1]]
+                if (i>=6):   # если имеем дело с элементами с 7го по 10й, то там гарантировано стоят натуральные числа
+                    new_word[i] = word[i] + "|" # добавляем "|" между числами, чтобы читать их методом .split
+                else:   # если имеем дело с элементами с 1го по 6й, то там могут быть буквы, натуральные и вещественные числа, пропуски
+                    if ((line[70:72] != " 0" and line[70:72] != " 1") or (int(line[75:]) > 0 and int(line[75:]) < 5)):   # отсекаем строки с текстом (те. с MF=" 1" или =" 0", MT=" 451")
+                        if (word[i][2] == "."): # переводим экспоненциальную запись вида +0.0+0 в +0.0е+0
+                            # если вдруг бывает, что точка в числе есть, но не на 3м месте, то надо переписать через .find()
+                            if (word[i][1:].find("+") != -1):
+                                new_word[i] = word[i][0] + word[i][1:].split("+")[0] + "e+" + word[i][1:].split("+")[1]  
+                            elif (word[i][1:].find("-") != -1):
+                                new_word[i] = word[i][0] + word[i][1:].split("-")[0] + "e-" + word[i][1:].split("-")[1]
+                        else: # тут будут либо целые числа, либо пробелы
+                            new_word[i] = " " + word[i] # добавляем " " чтобы уравнять длину с вещественными числами (там добавилась "e")
+                        new_word[i] = new_word[i] + "|" # добавляем "|" между числами, чтобы читать их методом .split
+                    else:                       # читаем строки с текстом 
+                        new_word[i] = word[i]   # их оставляем без изменений
+                        new_word[5] = new_word[5] + " "*11 + "|"  # сдвигаем элементы 7-10, чтобы везде в файле у них было одно положение
+                            # добавляем "|" в конце текста, чтобы читать эти строки методом .split (в тексте чтение будет отличаться от таблиц)
 
-            if (i>=6):   # если имеем дело с элементами с 7го по 10й, то там гарантировано стоят натуральные числа
-                new_word[i] = word[i] + "|" # добавляем "|" между числами, чтобы читать их методом .split
-            else:   # если имеем дело с элементами с 1го по 6й, то там могут быть буквы, натуральные и вещественные числа, пропуски
-                if ((line[70:72] != " 0" and line[70:72] != " 1") or (int(line[75:]) > 0 and int(line[75:]) < 5)):   # отсекаем строки с текстом (те. с MF=" 1" или =" 0", MT=" 451")
-                    if (word[i][2] == "."): # переводим экспоненциальную запись вида +0.0+0 в +0.0е+0
-                        # если вдруг бывает, что точка в числе есть, но не на 3м месте, то надо переписать через .find()
-                        if (word[i][1:].find("+") != -1):
-                            new_word[i] = word[i][0] + word[i][1:].split("+")[0] + "e+" + word[i][1:].split("+")[1]  
-                        elif (word[i][1:].find("-") != -1):
-                            new_word[i] = word[i][0] + word[i][1:].split("-")[0] + "e-" + word[i][1:].split("-")[1]
-                    else: # тут будут либо целые числа, либо пробелы
-                        new_word[i] = " " + word[i] # добавляем " " чтобы уравнять длину с вещественными числами (там добавилась "e")
-                    new_word[i] = new_word[i] + "|" # добавляем "|" между числами, чтобы читать их методом .split
-                else:                       # читаем строки с текстом 
-                    new_word[i] = word[i]   # их оставляем без изменений
-                    new_word[5] = new_word[5] + " "*11 + "|"  # сдвигаем элементы 7-10, чтобы везде в файле у них было одно положение
-                        # добавляем "|" в конце текста, чтобы читать эти строки методом .split (в тексте чтение будет отличаться от таблиц)
-
-            f1.write(new_word[i])   # наконец записываем в файл
-        f1.write("\n")  # новая строка
-    f.close()
-    f1.close()
+                f1.write(new_word[i])   # наконец записываем в файл
+            f1.write("\n")  # новая строка
+        f.close()
+        f1.close()
 
 
 def separateData(fname, MT):   # считывает из ./converted, записывает в ./reshaped по отдельным папкам
+
+    if not os.path.isdir("reshaped"):  # проверка наличия директории
+        os.mkdir("reshaped")
     
     # ==================  запись коэффициентов Лежандра  ================== #
     MF = int(6) 
@@ -87,13 +98,6 @@ def separateData(fname, MT):   # считывает из ./converted, запис
     f = open("converted/" + fname)
     f1 = open("converted/" + fname) # тут мы просто открываем файл. Потом, в цикле, будем открывать нужные файлы, 
     # когда узнаем их расположение. (тк цикл начинается с закрытия файла, для этого нужно сперва открыть)
-    
-    if not os.path.isdir("reshaped"):  # проверка наличия директории
-        os.mkdir("reshaped")
-    if not os.path.isdir("reshaped/" + fname): # проверка наличия директории
-        os.mkdir("reshaped/" + fname)
-    if not os.path.isdir("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT)): # проверка наличия директории
-        os.mkdir("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT))
 
     NWlineNumber = [0]  # номер подтаблицы (каждая соответствует своей энергии налетающей частицы E_in)
     tmp = 0     # тк в ENDF таблицы размазанны в строки по 6 элементов, иногда несколько ячеек в строке остаются пустыми.
@@ -104,6 +108,12 @@ def separateData(fname, MT):   # считывает из ./converted, запис
     for line in f.readlines():  # считываем построчно
         word = convertLine(line)  # разбиваем строку на массив numpy, состоящий из 10 элементов
         if (int(word[constants.ENDF.MFindex]) == 6 and int(word[constants.ENDF.MTindex]) == MT): # читаем только нужные строчки по MF, MT
+
+            if not os.path.isdir("reshaped/" + fname): # проверка наличия директории
+                os.mkdir("reshaped/" + fname)
+            if not os.path.isdir("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT)): # проверка наличия директории
+                os.mkdir("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT))
+
             # ниже просто запоминаем шапку таблицы, может потом пригодится. Вид первых трёх строк всегда одинаков (в MF6 как минимум)
             # подробнее про смысл констант см. файл constants.py (краткая справка) или ENDF6 formats manual 
             # https://www-nds.iaea.org/public/endf/endf-manual.pdf
@@ -172,6 +182,9 @@ def separateData(fname, MT):   # считывает из ./converted, запис
     # ==================  запись парциальных сечений реакций (a, nx)  ================== # 
     MF = int(3)
     dirname = fname + "/MF" + str(MF) + "_MT" + str(MT)       # C_13/MF3_MT50
+    
+    if not os.path.isdir("reshaped/" + fname): # проверка наличия директории
+        os.mkdir("reshaped/" + fname)
     file1 = open("./converted/" + fname, "r")   # файл из папки converted из ENDF6-reader 
     file2 = open("./reshaped/" + dirname, "w")  # файл в который ведётся запись 
     while True:

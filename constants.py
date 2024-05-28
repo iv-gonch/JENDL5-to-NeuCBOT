@@ -41,11 +41,13 @@ class ENDF:
 
 class physics:
     N_A = 6.0221409e+23
-    MeV_to_keV = 1.e3
+    MeV_to_keV= 1.e3
+    MeV_to_eV = 1.e6
     mb_to_cm2 = 1.e-27
+    b_to_mb   = 1.e3
     year_to_s = 31536000
-    min_bin = 0   # keV
-    max_bin = 20000  # keV
+    min_bin   = 0   # keV
+    max_bin   = 20000  # keV
     delta_bin = 100  # keV
 
 class flags:

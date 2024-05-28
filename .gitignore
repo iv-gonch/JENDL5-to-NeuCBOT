@@ -2,16 +2,15 @@ __pycache__/
 *.pyc
 *.vscode
 *.DS_Store
+
 test/
-processed/
-reshaped/
+
+# jendl5-a/
+
 converted/
-downloaded/
-graphs2D/
-graphs3D/
-spectra/
-spectraSAVE/
-En_distribution/
+reshaped/
+
 angle_distribution/
-rebin/
-rebinTotalXS/
+En_distribution/
+
+result/
