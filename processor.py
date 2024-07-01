@@ -130,8 +130,8 @@ def angle2spectrum(fname, MT, points, NK, NE, E_in, dist_angle, isData):
             for j in range(points): 
                 shortLine = 2.* a * E_a[i] * n * cos_Theta[j]**2.   
 
-                if (shortLine**2.+ 2.*shortLine*longLine < 0):
-                    print("shortLine**2.+ 2.*shortLine*longLine < 0", Q+E_a[i])
+                # if (shortLine**2.+ 2.*shortLine*longLine < 0):
+                #     print("shortLine**2.+ 2.*shortLine*longLine < 0", -E_treshold_lab+E_a[i])
 
                 if (cos_Theta[j] > 0.):
                     E_n[i,j] = (shortLine+longLine + np.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2.
