@@ -6,11 +6,5 @@ __pycache__/
 test/
 
 # jendl5-a/
-
-converted/
-reshaped/
-
-angle_distribution/
-En_distribution/
-
-result/
+stage_1_data/
+stage_2_data/

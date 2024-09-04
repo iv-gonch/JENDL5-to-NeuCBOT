@@ -26,12 +26,12 @@ def main():   # как хотелось бы сделать
             dE_n    = int(sys.argv[sys.argv.index(arg)+1])
         if arg == "-nucleus":
             fname   = sys.argv[sys.argv.index(arg)+1]
-            print("Inserting data into NeuCBOT for " + fname + " (a,n" + str(MT-50) + ")-reaction.", file=sys.stdout)
+            print("Trying to insert into NeuCBOT " + fname + " data for (a,n" + str(MT-50) + ")-reaction.", file=sys.stdout)
             adjuster.neucbotIn(fname, MT, points, dE_a, dE_n)   # [dE_a] = [dE_n] = eV
     if not (fname):
         print("You need to set the element. \nAdd line \"-nucleus C_13\" after main.py")
     else:
-        print("JENDL-based data for " + fname + " is stored now in ./result and ../neucbot/Data/Isotopes/" + \
+        print("JENDL-based data for " + fname + " is stored now in ./stage_2_data and ../neucbot/Data/Isotopes/" + \
                      fname.split("_")[0] + "/" + fname.replace("_", "") + "/JendlOut")
     
 

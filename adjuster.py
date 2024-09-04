@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # финальный этап работы ENDF6reader. 
-# Интерполирует данные из En_distribution 
-# и записывает их в ../neucbot и в ./result
+# Интерполирует данные из stage_1_data/En_distribution 
+# и записывает их в ../neucbot и в ./stage_2_data
 
 from __future__ import print_function
 from __future__ import division
@@ -15,13 +15,13 @@ import constants
 import processor
 
 
-# Делает массивы Ea_Rebin и XS_Rebin и записывает их в neucbot и в result
+# Делает массивы Ea_Rebin и XS_Rebin и записывает их в neucbot и в stage_2_data
 def RebinXS(fname, MT, dE_a):
     MF = int(3)
 
     dirname = fname + "/MF" + str(MF) + "_MT" + str(MT)  # C_13/MF3_MT50
 
-    f = open("./reshaped/" + dirname, "r")    # только что созданный файл в папке MF3_MT50 
+    f = open("./stage_1_data/reshaped/" + dirname, "r")    # только что созданный файл в папке MF3_MT50 
     fileLen = 0 # число строк в файле
     for line in f.readlines():
         if line.split():
@@ -31,7 +31,7 @@ def RebinXS(fname, MT, dE_a):
     E_a = np.zeros(fileLen)
     X_S = np.zeros(fileLen)
     NS = 0
-    f = open("./reshaped/" + dirname, "r")
+    f = open("./stage_1_data/reshaped/" + dirname, "r")
     for line in f.readlines():  # считываем данные файла в массивы
         if line.split():
             E_a[NS] = line.split()[0]
@@ -55,20 +55,20 @@ def RebinXS(fname, MT, dE_a):
         os.mkdir("../neucbot/Data/Isotopes/" + \
                     fname.split("_")[0] + "/" + fname.replace("_", "") + "/JendlOut")
     
-    if not os.path.isdir("./result"):
-        os.mkdir("./result")
-    if not os.path.isdir("./result/" + fname):
-        os.mkdir("./result/" + fname )
-    if not os.path.isdir("./result/" + fname + "/MT" + str(MT)):
-        os.mkdir("./result/" + fname + "/MT" + str(MT))
+    if not os.path.isdir("./stage_2_data"):
+        os.mkdir("./stage_2_data")
+    if not os.path.isdir("./stage_2_data/" + fname):
+        os.mkdir("./stage_2_data/" + fname )
+    if not os.path.isdir("./stage_2_data/" + fname + "/MT" + str(MT)):
+        os.mkdir("./stage_2_data/" + fname + "/MT" + str(MT))
         
     f1 = open("../neucbot/Data/Isotopes/" + \
                 fname.split("_")[0] + "/" + \
                 fname.replace("_", "") + \
                     "/JendlOut/(a,n0)XS", "w")    # ../neucbot/Data/Isotopes/C/C13/JendlOut/(a,n0)XS
-    f2 = open("./result/" + fname + "/MT" + \
+    f2 = open("./stage_2_data/" + fname + "/MT" + \
                 str(MT) + "/(a,n" + \
-                str(MT-50) +")XS", "w")    # ./result/C_13/MT51/(a,n1)XS
+                str(MT-50) +")XS", "w")    # ./stage_2_data/C_13/MT51/(a,n1)XS
     
     f1.write("# E_a, MeV\t\tXS, mb\n")
     f2.write("# E_a, MeV\t\tXS, mb\n")
@@ -93,7 +93,7 @@ def interpolation(E_aBase, E_nBase, distBase, points, dE_a, dE_n):
 
     NEWminE_a = 0
     NEWmaxE_a = 15e6
-    newDirLength = int((NEWmaxE_a - NEWminE_a)/dE_a + 1)   # длина новой директории (./result/X_**)
+    newDirLength = int((NEWmaxE_a - NEWminE_a)/dE_a + 1)   # длина новой директории (./stage_2_data/X_**)
     E_aRebin = np.linspace(NEWminE_a, NEWmaxE_a, newDirLength)   # массив энергий налетающих альфа частиц (с равным шагом = dE_a)
     E_nTransitional = np.zeros((newDirLength, points))  # промежуточный массив энергий нейтронов
     distTransitional= np.zeros((newDirLength, points))  # промежуточный массив ф-ции распределния по энергиям a и n
@@ -137,11 +137,11 @@ def interpolation(E_aBase, E_nBase, distBase, points, dE_a, dE_n):
     return E_aRebin, E_nRebin, distRebin, minE_a, maxE_a, newDirLength, newArrayLength
 
 
-# считывает из файла ./En_distribution/... массивы E_aBase, E_nBase, distBase
+# считывает из файла ./stage_1_data/En_distribution/... массивы E_aBase, E_nBase, distBase
 def readNeutronEnergyDistribtion(fname, MT, points):  
     MF = int(6)
 
-    dirname = "En_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT)
+    dirname = "stage_1_data/En_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT)
     dirLen = len([name for name in os.listdir(dirname)])    # число файлов в папке
     E_aBase = np.zeros(dirLen)  # массив энергий налетающих альфа частиц [в эВ]
     distBase = np.zeros((dirLen, points))   # массив Энерго-углового распределения [безразмерное]
@@ -149,7 +149,7 @@ def readNeutronEnergyDistribtion(fname, MT, points):
     NK = 1  # есть в названии директории. Отвечает за количество различных вылетющих частц
     counter = 0 # счётчик по эенргии (NE)
     
-    while True:   # пока не закончатся файлы в директории /En_distribution/fname/MF*_MT**/
+    while True:   # пока не закончатся файлы в директории /stage_1_data/En_distribution/fname/MF*_MT**/
         if not os.path.isfile(dirname + "/NK" + str(NK) + "_NE" + str(counter)):    
             # на будущее, когда будет несколько вылетающих частиц (не учтено сейчас!!! будет перезапись по counter)
             # когда прошли все E_in для нынешнего NK
@@ -180,7 +180,7 @@ def neucbotIn(fname, MT, points, dE_a, dE_n):
     # fname = "C_13", MT=50, points = 101,  dE_a = dE_n = 10000eV
     MF = int(6)
 
-    dirname = "En_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT)
+    dirname = "stage_1_data/En_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT)
     if not os.path.isdir(dirname):    
         # проверка наличия директории
         print ("Trying to obtain raw distribution for " + fname + "!")
@@ -198,7 +198,7 @@ def neucbotIn(fname, MT, points, dE_a, dE_n):
 
             f1 = open("../neucbot/Data/Isotopes/" + fname.split("_")[0] + "/" + fname.replace("_", "") + \
                       "/JendlOut/outputE" + str("{:.4f}".format(E_aRebin[i]/constants.physics.MeV_to_eV)), "w")    # запись в neucbot/
-            f2 = open("./result/" + fname + "/MT" + str(MT) + "/outputE" + str("{:.4f}".format(E_aRebin[i]/constants.physics.MeV_to_eV)), "w")    # запись в neucbot/
+            f2 = open("./stage_2_data/" + fname + "/MT" + str(MT) + "/outputE" + str("{:.4f}".format(E_aRebin[i]/constants.physics.MeV_to_eV)), "w")    # запись в neucbot/
             
             if (minE_a > E_aRebin[i] or E_aRebin[i] > maxE_a or XS_Rebin[i] == 0):
                 f1.write("EMPTY")
