@@ -215,8 +215,8 @@ def angle2spectrum(fname, MT, points, NK, NE, E_in, dist_angle, isData):
 
             f1.write("Incident particle energy (eV) = \n" + str(T_a[i]) + "\n\n" + \
                      "cos(theta) distribution p_i(mu) \n")
-            f2.write("Incident particle energy (eV) = \n" + str(T_a[i]) + "\n\n" + \
-                     "T_n lab,eV distribution p^_i(En),1/eV\n")
+            f2.write("Incident particle energy (eV) = \n" + str(T_a[i]) + "\n           distribution \n" + \
+                     "T_n lab,eV p^_i(En),1/eV\n")
 
             eqA = a + In + T_a[i]
             eqC = (Out**2. - (In+a-n)**2.)/2. - T_a[i]*(In-n)
@@ -224,28 +224,47 @@ def angle2spectrum(fname, MT, points, NK, NE, E_in, dist_angle, isData):
             E_treshold_lab = 0.
             if (Q < 0):
                 E_treshold_lab = -Q*(1. + a/In - Q/(2.*In)) # в эВ
-            if (T_a[i] < E_treshold_lab):
-                print ("\n", T_a[i], "= T_a", i, "< E_treshold =", E_treshold_lab)
-                continue
+            # if (T_a[i] < E_treshold_lab):
+            #     print ("\n", T_a[i], "= T_a", i, "< E_treshold =", E_treshold_lab)
+            #     continue
             for j in range(points): 
+
+                if (T_a[i] < E_treshold_lab or eqC >0):
+                    # print ("\n", T_a[i], "= T_a", i, "< E_treshold =", E_treshold_lab)
+                    f1.write(str("{:10.7f}".format(cos_Theta[j])) + " " + \
+                            str("{:12.10f}".format(0)) + "\n")
+                    f2.write(str("{:10.1f}".format(0)) + " " + \
+                            str("{:e}".format(0)) + "\n")
+                    continue
+
                 eqB = cos_Theta[j]*np.sqrt(a*T_a[i]*n)
 
-                # T_n[i,j] = ((eqB + np.sqrt(eqB**2. - eqA*eqC)) / eqA)**2. - E_exited
-                if (cos_Theta[j] < 0.):
-                    T_n[i,j] = ((eqB + np.sqrt(eqB**2. - eqA*eqC)) / eqA)**2. #- E_exited
-                else:
-                    T_n[i,j] = ((eqB - np.sqrt(eqB**2. - eqA*eqC)) / eqA)**2. #- E_exited
+                T_n[i,j] = ((eqB + np.sqrt(eqB**2. - eqA*eqC)) / eqA)**2. #- E_exited
+                # if (cos_Theta[j] < 0.):
+                #     T_n[i,j] = ((eqB + np.sqrt(eqB**2. - eqA*eqC)) / eqA)**2. #- E_exited
+                # else:
+                #     T_n[i,j] = ((eqB - np.sqrt(eqB**2. - eqA*eqC)) / eqA)**2. #- E_exited
                 
                 dist_En[i,j] = dist_angle[i,j] * \
                     (
                         -eqC/(4.* np.sqrt(a*T_a[i]*n*(T_n[i,j]**3.))) \
                         +eqA/(4.* np.sqrt(a*T_a[i]*n* T_n[i,j]))
                     )   # f(mu) * d mu = f(En) * (d mu / d En) dEn
+                
+                Test = eqB*np.sqrt(0.25*eqB**2. - eqA*eqC)/(eqA**2.)
 
                 f1.write(str("{:10.7f}".format(cos_Theta[j])) + " " + \
                          str("{:12.10f}".format(dist_angle[i,j])) + "\n")
+                # f2.write(str("{:10.1f}".format(T_n[i,j])) + " " + \
+                #          str("{:e}".format(dist_En[i,j])) + "\n")
                 f2.write(str("{:10.1f}".format(T_n[i,j])) + " " + \
-                         str("{:e}".format(dist_En[i,j])) + "\n")
+                         str("{:e}".format(dist_En[i,j])) + " " + \
+                        #  str("{:10.7f}".format(cos_Theta[j])) + " " + \
+                        #  str("{:e}".format(eqA)) + " " + \
+                        #  str("{:e}".format(eqB)) + " " + \
+                        #  str("{:e}".format(eqC)) + " " + \
+                        #  str("{:e}".format(Test)) + 
+                        "\n")
             
             f1.close()
             f2.close()

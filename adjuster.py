@@ -62,24 +62,24 @@ def RebinXS(fname, MT, dE_a):
     if not os.path.isdir("./stage_2_data/" + fname + "/MT" + str(MT)):
         os.mkdir("./stage_2_data/" + fname + "/MT" + str(MT))
         
-    f1 = open("../neucbot/Data/Isotopes/" + \
-                fname.split("_")[0] + "/" + \
-                fname.replace("_", "") + \
-                    "/JendlOut/(a,n0)XS", "w")    # ../neucbot/Data/Isotopes/C/C13/JendlOut/(a,n0)XS
+    # f1 = open("../neucbot/Data/Isotopes/" + \
+    #             fname.split("_")[0] + "/" + \
+    #             fname.replace("_", "") + \
+    #                 "/JendlOut/(a,n0)XS", "w")    # ../neucbot/Data/Isotopes/C/C13/JendlOut/(a,n0)XS
     f2 = open("./stage_2_data/" + fname + "/MT" + \
                 str(MT) + "/(a,n" + \
                 str(MT-50) +")XS", "w")    # ./stage_2_data/C_13/MT51/(a,n1)XS
     
-    f1.write("# E_a, MeV\t\tXS, mb\n")
+    # f1.write("# E_a, MeV\t\tXS, mb\n")
     f2.write("# E_a, MeV\t\tXS, mb\n")
 
     for i in range(len(E_aRebin)):
-        f1.write(str(E_aRebin[i]/constants.physics.MeV_to_eV) + " \t\t" + str(XS_Rebin[i]*constants.physics.b_to_mb) + "\n")    # E_a, Mev   XS, mb
+        # f1.write(str(E_aRebin[i]/constants.physics.MeV_to_eV) + " \t\t" + str(XS_Rebin[i]*constants.physics.b_to_mb) + "\n")    # E_a, Mev   XS, mb
         f2.write(str(E_aRebin[i]/constants.physics.MeV_to_eV) + " \t\t" + str(XS_Rebin[i]*constants.physics.b_to_mb) + "\n")    # E_a, Mev   XS, mb
-    f1.close()
+    # f1.close()
     f2.close()
 
-    return XS_Rebin*constants.physics.b_to_mb # ? правильно ли умножится?
+    return XS_Rebin*constants.physics.b_to_mb # ? правильно ли умножится? вроде норм тк в JENDL сечения в б а надо в мб
 
 
 def interpolation(E_aBase, E_nBase, distBase, points, dE_a, dE_n):
