@@ -1,9 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Считывает строки с конкретными MF и MT из конвертированного файла. 
-# Записывает в папку /reshaped/filename/MF**_MT***/NK**_NE*** функцию p_i(theta) для каждой энергии налетающей альфа частицы
-
 from __future__ import print_function
 from __future__ import division
 import numpy as np
@@ -64,6 +61,99 @@ def legendre2angle(Coeff, points, NE):  # из коэффициентов леж
     return dist_angle
 
 
+# def angle2spectrum(fname, MT, points, NK, NE, E_in, dist_angle, isData):
+#     # из распределения theta_neutron(E_alpha) получаем зависимость E_neutron(E_alpha) 
+#     # по кинематической формуле без учёта релятивизма
+#     MF = int(6)
+#     if not (isData):  # проверка на наличие данных для вычисления спектра
+#         print("No data for", fname, "MF", MF, "MT", MT)
+#     else:
+#         ele = fname.split("_")[0]
+#         Z = int(chemistry.getZ(ele))
+#         A = int(fname.split("_")[1])
+
+#         ZA_in = Z*1000 + A  
+#         In = chemistry.getMass(ZA_in)
+
+#         ZA_out = (Z+2)*1000 + (A+3)
+#         Out = chemistry.getMass(ZA_out)
+
+#         a = chemistry.getMass(2004) # в эВ
+#         n = chemistry.getMass(1)    # в эВ
+
+#         Q = (In+a) - (Out+n)    # в эВ
+
+#         E_n = np.zeros((NE, points), dtype=float)
+#         E_a = np.zeros(NE, dtype=float)
+#         cos_Theta = np.linspace(-1, 1, points)
+
+#         dist_En = np.zeros_like(dist_angle)
+
+#         if not os.path.isdir("stage_1_data"):  # проверка наличия директории
+#             os.mkdir("stage_1_data")
+#         if not os.path.isdir("stage_1_data/angle_distribution"):  # проверка наличия директории
+#             os.mkdir("stage_1_data/angle_distribution")
+#         if not os.path.isdir("stage_1_data/angle_distribution/" + fname): # проверка наличия директории
+#             os.mkdir("stage_1_data/angle_distribution/" + fname)
+#         if not os.path.isdir("stage_1_data/angle_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT)): # проверка наличия директории
+#             os.mkdir("stage_1_data/angle_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT))
+
+#         if not os.path.isdir("stage_1_data"):  # проверка наличия директории
+#             os.mkdir("stage_1_data")
+#         if not os.path.isdir("stage_1_data/En_distribution"):  # проверка наличия директории
+#             os.mkdir("stage_1_data/En_distribution")
+#         if not os.path.isdir("stage_1_data/En_distribution/" + fname): # проверка наличия директории
+#             os.mkdir("stage_1_data/En_distribution/" + fname)
+#         if not os.path.isdir("stage_1_data/En_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT)): # проверка наличия директории
+#             os.mkdir("stage_1_data/En_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT))
+
+#         for i in range(NE): # для каждой энергии
+#             f1 = open("stage_1_data/angle_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT) + \
+#                       "/NK" + str(NK) + "_NE" + str(i), "w")
+#             f2 = open("stage_1_data/En_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT) + \
+#                       "/NK" + str(NK) + "_NE" + str(i), "w")
+            
+#             E_a[i] = E_in[i]    # в эВ
+
+#             f1.write("Incident particle energy (eV) = \n" + str(E_a[i]) + "\n\n" + \
+#                      "cos(theta) distribution p_i(mu) \n")
+#             f2.write("Incident particle energy (eV) = \n" + str(E_a[i]) + "\n\n" + \
+#                      "E_n lab,eV distribution p^_i(En),1/eV\n")
+
+#             longLine = (n+Out) * (Out*(Q+E_a[i]) - a*E_a[i])    # изначально было
+
+#             E_treshold_lab = 0.
+#             if (Q < 0):
+#                 E_treshold_lab = -Q*(1. + a/In - Q/(2.*In)) # в эВ
+#             if (E_a[i] < E_treshold_lab):
+#                 print ("\n", E_a[i], "= E_a", i, "< E_treshold =", E_treshold_lab)
+#                 continue
+#             for j in range(points): 
+#                 shortLine = 2.* a * E_a[i] * n * cos_Theta[j]**2.   
+
+#                 # if (shortLine**2.+ 2.*shortLine*longLine < 0):
+#                 #     print("shortLine**2.+ 2.*shortLine*longLine < 0", -E_treshold_lab+E_a[i])
+
+#                 if (cos_Theta[j] > 0.):
+#                     E_n[i,j] = (shortLine+longLine + np.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2.
+#                 else:
+#                     E_n[i,j] = (shortLine+longLine - np.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2. 
+                    
+#                 dist_En[i,j] = dist_angle[i,j] * \
+#                     (((a+Out)/np.sqrt(16*n*E_n[i,j]*a*E_a[i])) + \
+#                      (((n+Out)*(Out*(Q+E_a[i])-a*E_a[i]))/\
+#                       (4*(a+Out)*np.sqrt(E_n[i,j]**3*n*a*E_a[i]))))   # f(mu) * d mu = f(En) * (d mu / d En) dEn
+
+#                 f1.write(str("{:10.7f}".format(cos_Theta[j])) + " " + \
+#                          str("{:12.10f}".format(dist_angle[i,j])) + "\n")
+#                 f2.write(str("{:10.1f}".format(E_n[i,j])) + " " + \
+#                          str("{:e}".format(dist_En[i,j])) + "\n")
+            
+#             f1.close()
+#             f2.close()
+#         # return cos_Theta, E_n, dist_En, isData
+
+
 def angle2spectrum(fname, MT, points, NK, NE, E_in, dist_angle, isData):
     # из распределения theta_neutron(E_alpha) получаем зависимость E_neutron(E_alpha) 
     # по кинематической формуле без учёта релятивизма
@@ -80,78 +170,105 @@ def angle2spectrum(fname, MT, points, NK, NE, E_in, dist_angle, isData):
 
         ZA_out = (Z+2)*1000 + (A+3)
         Out = chemistry.getMass(ZA_out)
+        if MT == 50:
+            E_exited = 0.
+        else:
+            E_exited = chemistry.getMassExited(ZA_out, MT) - Out
+            Out = chemistry.getMassExited(ZA_out, MT)
 
         a = chemistry.getMass(2004) # в эВ
         n = chemistry.getMass(1)    # в эВ
 
-        Q = In + a - Out - n    # в эВ
+        Q = (In+a) - (Out+n)        # в эВ
 
-        E_n = np.zeros((NE, points), dtype=float)
-        E_a = np.zeros(NE, dtype=float)
+        T_n = np.zeros((NE, points), dtype=float)
+        T_a = np.zeros(NE, dtype=float)
         cos_Theta = np.linspace(-1, 1, points)
 
         dist_En = np.zeros_like(dist_angle)
 
-        if not os.path.isdir("angle_distribution"):  # проверка наличия директории
-            os.mkdir("angle_distribution")
-        if not os.path.isdir("angle_distribution/" + fname): # проверка наличия директории
-            os.mkdir("angle_distribution/" + fname)
-        if not os.path.isdir("angle_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT)): # проверка наличия директории
-            os.mkdir("angle_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT))
+        if not os.path.isdir("stage_1_data"):  # проверка наличия директории
+            os.mkdir("stage_1_data")
+        if not os.path.isdir("stage_1_data/angle_distribution"):  # проверка наличия директории
+            os.mkdir("stage_1_data/angle_distribution")
+        if not os.path.isdir("stage_1_data/angle_distribution/" + fname): # проверка наличия директории
+            os.mkdir("stage_1_data/angle_distribution/" + fname)
+        if not os.path.isdir("stage_1_data/angle_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT)): # проверка наличия директории
+            os.mkdir("stage_1_data/angle_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT))
 
-        if not os.path.isdir("En_distribution"):  # проверка наличия директории
-            os.mkdir("En_distribution")
-        if not os.path.isdir("En_distribution/" + fname): # проверка наличия директории
-            os.mkdir("En_distribution/" + fname)
-        if not os.path.isdir("En_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT)): # проверка наличия директории
-            os.mkdir("En_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT))
+        if not os.path.isdir("stage_1_data"):  # проверка наличия директории
+            os.mkdir("stage_1_data")
+        if not os.path.isdir("stage_1_data/En_distribution"):  # проверка наличия директории
+            os.mkdir("stage_1_data/En_distribution")
+        if not os.path.isdir("stage_1_data/En_distribution/" + fname): # проверка наличия директории
+            os.mkdir("stage_1_data/En_distribution/" + fname)
+        if not os.path.isdir("stage_1_data/En_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT)): # проверка наличия директории
+            os.mkdir("stage_1_data/En_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT))
 
         for i in range(NE): # для каждой энергии
-            f1 = open("angle_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT) + \
+            f1 = open("stage_1_data/angle_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT) + \
                       "/NK" + str(NK) + "_NE" + str(i), "w")
-            f2 = open("En_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT) + \
+            f2 = open("stage_1_data/En_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT) + \
                       "/NK" + str(NK) + "_NE" + str(i), "w")
             
-            E_a[i] = E_in[i]    # в эВ
+            T_a[i] = E_in[i]    # в эВ
 
-            f1.write("Incident particle energy (eV) = \n" + str(E_a[i]) + "\n\n" + \
+            f1.write("Incident particle energy (eV) = \n" + str(T_a[i]) + "\n\n" + \
                      "cos(theta) distribution p_i(mu) \n")
-            f2.write("Incident particle energy (eV) = \n" + str(E_a[i]) + "\n\n" + \
-                     "E_n lab,eV distribution p^_i(En),1/eV\n")
+            f2.write("Incident particle energy (eV) = \n" + str(T_a[i]) + "\n           distribution \n" + \
+                     "T_n lab,eV p^_i(En),1/eV\n")
 
-            longLine = (n+Out) * (Out*(Q+E_a[i]) - a*E_a[i])    # изначально было
+            eqA = a + In + T_a[i]
+            eqC = (Out**2. - (In+a-n)**2.)/2. - T_a[i]*(In-n)
 
             E_treshold_lab = 0.
             if (Q < 0):
                 E_treshold_lab = -Q*(1. + a/In - Q/(2.*In)) # в эВ
-            if (E_a[i] < E_treshold_lab):
-                print (E_a[i], "= E_a < E_treshold =", E_treshold_lab)
-                continue
+            # if (T_a[i] < E_treshold_lab):
+            #     print ("\n", T_a[i], "= T_a", i, "< E_treshold =", E_treshold_lab)
+            #     continue
             for j in range(points): 
-                shortLine = 2.* a * E_a[i] * n * cos_Theta[j]**2.   
 
-                if (shortLine**2.+ 2.*shortLine*longLine < 0):
-                    print("shortLine**2.+ 2.*shortLine*longLine < 0", Q+E_a[i])
+                if (T_a[i] < E_treshold_lab or eqC >0):
+                    # print ("\n", T_a[i], "= T_a", i, "< E_treshold =", E_treshold_lab)
+                    f1.write(str("{:10.7f}".format(cos_Theta[j])) + " " + \
+                            str("{:12.10f}".format(0)) + "\n")
+                    f2.write(str("{:10.1f}".format(0)) + " " + \
+                            str("{:e}".format(0)) + "\n")
+                    continue
 
-                if (cos_Theta[j] > 0.):
-                    E_n[i,j] = (shortLine+longLine + np.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2.
-                else:
-                    E_n[i,j] = (shortLine+longLine - np.sqrt(shortLine**2.+ 2.*shortLine*longLine)) / (n+Out)**2. 
-                    
+                eqB = cos_Theta[j]*np.sqrt(a*T_a[i]*n)
+
+                T_n[i,j] = ((eqB + np.sqrt(eqB**2. - eqA*eqC)) / eqA)**2. #- E_exited
+                # if (cos_Theta[j] < 0.):
+                #     T_n[i,j] = ((eqB + np.sqrt(eqB**2. - eqA*eqC)) / eqA)**2. #- E_exited
+                # else:
+                #     T_n[i,j] = ((eqB - np.sqrt(eqB**2. - eqA*eqC)) / eqA)**2. #- E_exited
+                
                 dist_En[i,j] = dist_angle[i,j] * \
-                    (((a+Out)/np.sqrt(16*n*E_n[i,j]*a*E_a[i])) + \
-                     (((n+Out)*(Out*(Q+E_a[i])-a*E_a[i]))/\
-                      (4*(a+Out)*np.sqrt(E_n[i,j]**3*n*a*E_a[i]))))   # f(mu) * d mu = f(En) * (d mu / d En) dEn
+                    (
+                        -eqC/(4.* np.sqrt(a*T_a[i]*n*(T_n[i,j]**3.))) \
+                        +eqA/(4.* np.sqrt(a*T_a[i]*n* T_n[i,j]))
+                    )   # f(mu) * d mu = f(En) * (d mu / d En) dEn
+                
+                Test = eqB*np.sqrt(0.25*eqB**2. - eqA*eqC)/(eqA**2.)
 
                 f1.write(str("{:10.7f}".format(cos_Theta[j])) + " " + \
                          str("{:12.10f}".format(dist_angle[i,j])) + "\n")
-                f2.write(str("{:10.1f}".format(E_n[i,j])) + " " + \
-                         str("{:e}".format(dist_En[i,j])) + "\n")
+                # f2.write(str("{:10.1f}".format(T_n[i,j])) + " " + \
+                #          str("{:e}".format(dist_En[i,j])) + "\n")
+                f2.write(str("{:10.1f}".format(T_n[i,j])) + " " + \
+                         str("{:e}".format(dist_En[i,j])) + " " + \
+                        #  str("{:10.7f}".format(cos_Theta[j])) + " " + \
+                        #  str("{:e}".format(eqA)) + " " + \
+                        #  str("{:e}".format(eqB)) + " " + \
+                        #  str("{:e}".format(eqC)) + " " + \
+                        #  str("{:e}".format(Test)) + 
+                        "\n")
             
             f1.close()
             f2.close()
-        # return cos_Theta, E_n, dist_En, isData
-    
+
 
 def getEnergyAngleDistribtion(fname, MT, points, normcheck):
     NK = 1  # есть в названии директории. Отвечает за количество различных вылетющих частц
@@ -161,19 +278,19 @@ def getEnergyAngleDistribtion(fname, MT, points, normcheck):
 
 #========= сохраняем данный из файлов в массивы E_in, Coeff,=========#
 
-    if not os.path.isdir("reshaped/" + fname + "/MF6_MT" + str(MT)):  # проверка наличия директории
+    if not os.path.isdir("stage_1_data/reshaped/" + fname + "/MF6_MT" + str(MT)):  # проверка наличия директории
         converter.separateData(fname, MT)
 
-    while (True):   # пока не закончатся файлы в директории /reshaped/fname/MF**_MT***/
-        if not os.path.isfile("reshaped/" + fname + "/MF6_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter)):    # на будущее, когда будет несколько вылетающих частиц
+    while (True):   # пока не закончатся файлы в директории /stage_1_data/reshaped/fname/MF**_MT***/
+        if not os.path.isfile("stage_1_data/reshaped/" + fname + "/MF6_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter)):    # на будущее, когда будет несколько вылетающих частиц
             # когда прошли все E_in для нынешнего NK
-            if os.path.isfile("reshaped/" + fname + "/MF6_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter)):  
+            if os.path.isfile("stage_1_data/reshaped/" + fname + "/MF6_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter)):  
                 NK += 1
                 print(fname, "MF = 6 MT =", MT, "contains data of more than one product particle") # проверка количества вылетающих частиц
             else:
                 break   # остановиться когда прошли все NK и E_in 
 
-        f = open("reshaped/" + fname + "/MF6_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter), "r")
+        f = open("stage_1_data/reshaped/" + fname + "/MF6_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter), "r")
         NS = 0  # номер строки в файле
         
         for line in f.readlines():  # считываем построчно

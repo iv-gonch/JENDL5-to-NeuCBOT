@@ -49,11 +49,13 @@ def convertENDF(fname): # convert Evaluated Nuclear Data File
         f.close()   # не уверен что после readline() правильно сработает метод readlines(). поэтому открываю и закрываю. Если первая строка не пропустится, то можно забить
 
         f = open("jendl5-a/" + JENDL_fname)     
-        print("New file", fname, "will be saved as ./converted/", ele + "_" + str(A), file=sys.stdout)
-        
-        if not os.path.isdir("converted"):
-            os.mkdir("converted")
-        f1= open("converted/" + ele + "_" + str(A), "w")
+        print("New file named", ele + "_" + str(A), "will be saved in ./stage_1_data/converted/", file=sys.stdout)
+
+        if not os.path.isdir("stage_1_data"):
+            os.mkdir("stage_1_data")        
+        if not os.path.isdir("stage_1_data/converted"):
+            os.mkdir("stage_1_data/converted")
+        f1= open("stage_1_data/converted/" + ele + "_" + str(A), "w")
 
         for line in f.readlines():  # читаем файл построчно
 
@@ -84,19 +86,21 @@ def convertENDF(fname): # convert Evaluated Nuclear Data File
         f1.close()
 
 
-def separateData(fname, MT):   # считывает из ./converted, записывает в ./reshaped по отдельным папкам
+def separateData(fname, MT):   # считывает из ./stage_1_data/converted, записывает в ./stage_1_data/reshaped по отдельным папкам
 
-    if not os.path.isdir("reshaped"):  # проверка наличия директории
-        os.mkdir("reshaped")
+    if not os.path.isdir("stage_1_data"):  # проверка наличия директории
+        os.mkdir("stage_1_data")
+    if not os.path.isdir("stage_1_data/reshaped"):  # проверка наличия директории
+        os.mkdir("stage_1_data/reshaped")
     
     # ==================  запись коэффициентов Лежандра  ================== #
     MF = int(6) 
-    if not os.path.isfile("converted/" + fname):    # проверка наличия конвертированного файла
-        print("There is no converted", fname, "file!", file=sys.stdout)
+    if not os.path.isfile("stage_1_data/converted/" + fname):    # проверка наличия конвертированного файла
+        print("There is no ", fname, "file in ./stage_1_data/converted!", file=sys.stdout)
         convertENDF(fname)
 
-    f = open("converted/" + fname)
-    f1 = open("converted/" + fname) # тут мы просто открываем файл. Потом, в цикле, будем открывать нужные файлы, 
+    f = open("stage_1_data/converted/" + fname)
+    f1 = open("stage_1_data/converted/" + fname) # тут мы просто открываем файл. Потом, в цикле, будем открывать нужные файлы, 
     # когда узнаем их расположение. (тк цикл начинается с закрытия файла, для этого нужно сперва открыть)
 
     NWlineNumber = [0]  # номер подтаблицы (каждая соответствует своей энергии налетающей частицы E_in)
@@ -109,10 +113,10 @@ def separateData(fname, MT):   # считывает из ./converted, запис
         word = convertLine(line)  # разбиваем строку на массив numpy, состоящий из 10 элементов
         if (int(word[constants.ENDF.MFindex]) == 6 and int(word[constants.ENDF.MTindex]) == MT): # читаем только нужные строчки по MF, MT
 
-            if not os.path.isdir("reshaped/" + fname): # проверка наличия директории
-                os.mkdir("reshaped/" + fname)
-            if not os.path.isdir("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT)): # проверка наличия директории
-                os.mkdir("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT))
+            if not os.path.isdir("stage_1_data/reshaped/" + fname): # проверка наличия директории
+                os.mkdir("stage_1_data/reshaped/" + fname)
+            if not os.path.isdir("stage_1_data/reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT)): # проверка наличия директории
+                os.mkdir("stage_1_data/reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT))
 
             # ниже просто запоминаем шапку таблицы, может потом пригодится. Вид первых трёх строк всегда одинаков (в MF6 как минимум)
             # подробнее про смысл констант см. файл constants.py (краткая справка) или ENDF6 formats manual 
@@ -157,8 +161,8 @@ def separateData(fname, MT):   # считывает из ./converted, запис
                 # записываем в какой строке ожидать следующее значение NW
                 f1.close()  # закрываем файл с предыдущим E_in
 
-                f1 = open("reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter), "w")
-                # создаём и открываем файл на пути /reshaped/C13/MF6_MT50/NK1_NE47 (например)
+                f1 = open("stage_1_data/reshaped/" + fname + "/MF" + str(MF) + "_MT" + str(MT) + "/NK" + str(NK) + "_NE" + str(counter), "w")
+                # создаём и открываем файл на пути /stage_1_data/reshaped/C13/MF6_MT50/NK1_NE47 (например)
 
                 f1.write("ZA = " + str(ZA) + "\tAWR = " + str(AWR) + "\nMF = " + str(MF) + "\tMT = " + str(MT) + \
                         "\nZAP (Emitted particle ZA code) = " + str(ZAP) + "\nAmount of files in directory for this type of particle: " + str(NE) + "\n")
@@ -183,10 +187,11 @@ def separateData(fname, MT):   # считывает из ./converted, запис
     MF = int(3)
     dirname = fname + "/MF" + str(MF) + "_MT" + str(MT)       # C_13/MF3_MT50
     
-    if not os.path.isdir("reshaped/" + fname): # проверка наличия директории
-        os.mkdir("reshaped/" + fname)
-    file1 = open("./converted/" + fname, "r")   # файл из папки converted из ENDF6-reader 
-    file2 = open("./reshaped/" + dirname, "w")  # файл в который ведётся запись 
+    if not os.path.isdir("stage_1_data/reshaped/" + fname): # проверка наличия директории
+        os.mkdir("stage_1_data/reshaped/" + fname)
+    file1 = open("./stage_1_data/converted/" + fname, "r")   # файл из папки stage_1_data/converted из ENDF6-reader 
+    file2 = open("./stage_1_data/reshaped/" + dirname, "w")  # файл в который ведётся запись 
+# строчка выше создаёт ненужный пустой файл если данных с заданным MT нет
     while True:
         line = file1.readline()
         # прерываем цикл, если строка пустая 
