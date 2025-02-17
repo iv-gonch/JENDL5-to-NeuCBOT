@@ -51,32 +51,66 @@ def RebinXS(fname, MT, dE_a):
     f.close()
     
     if not os.path.isdir("../neucbot/Data/Isotopes/" + \
-                            fname.split("_")[0] + "/" + fname.replace("_", "") + "/JendlOut"):   
+                            fname.split("_")[0] + "/" + \
+                            fname.replace("_", "") + \
+                            "/JendlOut"):   
         os.mkdir("../neucbot/Data/Isotopes/" + \
-                    fname.split("_")[0] + "/" + fname.replace("_", "") + "/JendlOut")
+                    fname.split("_")[0] + "/" + \
+                    fname.replace("_", "") + \
+                    "/JendlOut")
+    if not os.path.isdir("../neucbot/Data/Isotopes/" + \
+                            fname.split("_")[0] + "/" + \
+                            fname.replace("_", "") + \
+                            "/JendlOut/MT" + str(MT)):   
+        os.mkdir("../neucbot/Data/Isotopes/" + \
+                    fname.split("_")[0] + "/" + \
+                    fname.replace("_", "") + \
+                    "/JendlOut/MT" + str(MT))
     
-    if not os.path.isdir("./stage_2_data"):
-        os.mkdir("./stage_2_data")
-    if not os.path.isdir("./stage_2_data/" + fname):
-        os.mkdir("./stage_2_data/" + fname )
-    if not os.path.isdir("./stage_2_data/" + fname + "/MT" + str(MT)):
-        os.mkdir("./stage_2_data/" + fname + "/MT" + str(MT))
+    if not os.path.isdir("./stage_2_data/"):   
+        os.mkdir(        "./stage_2_data/")
+    if not os.path.isdir("./stage_2_data/" + \
+                            fname.split("_")[0] + "/"):   
+        os.mkdir(        "./stage_2_data/" + \
+                            fname.split("_")[0] + "/")
+    if not os.path.isdir("./stage_2_data/" + \
+                            fname.split("_")[0] + "/" + \
+                            fname.replace("_", "") + \
+                            "/"):   
+        os.mkdir(        "./stage_2_data/" + \
+                            fname.split("_")[0] + "/" + \
+                            fname.replace("_", "") + \
+                            "/")  
+        os.mkdir(        "./stage_2_data/" + \
+                            fname.split("_")[0] + "/" + \
+                            fname.replace("_", "") + \
+                            "/JendlOut")
+    if not os.path.isdir("./stage_2_data/" + \
+                            fname.split("_")[0] + "/" + \
+                            fname.replace("_", "") + \
+                            "/JendlOut/MT" + str(MT)):   
+        os.mkdir(        "./stage_2_data/" + \
+                            fname.split("_")[0] + "/" + \
+                            fname.replace("_", "") + \
+                            "/JendlOut/MT" + str(MT))
         
-    # f1 = open("../neucbot/Data/Isotopes/" + \
-    #             fname.split("_")[0] + "/" + \
-    #             fname.replace("_", "") + \
-    #                 "/JendlOut/(a,n0)XS", "w")    # ../neucbot/Data/Isotopes/C/C13/JendlOut/(a,n0)XS
-    f2 = open("./stage_2_data/" + fname + "/MT" + \
-                str(MT) + "/(a,n" + \
-                str(MT-50) +")XS", "w")    # ./stage_2_data/C_13/MT51/(a,n1)XS
+    f1 = open("../neucbot/Data/Isotopes/" + \
+                fname.split("_")[0] + "/" + \
+                fname.replace("_", "") + \
+                "/JendlOut/MT" + str(MT) + "/cross-section", "w")   # ../neucbot/Data/Isotopes/C/C13/JendlOut/MT50/XS
     
-    # f1.write("# E_a, MeV\t\tXS, mb\n")
+    f2 = open("./stage_2_data/" + \
+                fname.split("_")[0] + "/" + \
+                fname.replace("_", "") + \
+                "/JendlOut/MT" + str(MT) + "/cross-section", "w")   # ./stage_2_data/C/C13/JendlOut/MT50/XS
+    
+    f1.write("# E_a, MeV\t\tXS, mb\n")
     f2.write("# E_a, MeV\t\tXS, mb\n")
 
     for i in range(len(E_aRebin)):
-        # f1.write(str(E_aRebin[i]/constants.physics.MeV_to_eV) + " \t\t" + str(XS_Rebin[i]*constants.physics.b_to_mb) + "\n")    # E_a, Mev   XS, mb
+        f1.write(str(E_aRebin[i]/constants.physics.MeV_to_eV) + " \t\t" + str(XS_Rebin[i]*constants.physics.b_to_mb) + "\n")    # E_a, Mev   XS, mb
         f2.write(str(E_aRebin[i]/constants.physics.MeV_to_eV) + " \t\t" + str(XS_Rebin[i]*constants.physics.b_to_mb) + "\n")    # E_a, Mev   XS, mb
-    # f1.close()
+    f1.close()
     f2.close()
 
     return XS_Rebin*constants.physics.b_to_mb # ? правильно ли умножится? вроде норм тк в JENDL сечения в б а надо в мб
@@ -181,11 +215,11 @@ def neucbotIn(fname, MT, points, dE_a, dE_n):
     MF = int(6)
 
     dirname = "stage_1_data/En_distribution/" + fname + "/MF" + str(MF) + "_MT" + str(MT)
-    if not os.path.isdir(dirname):    
+    if not os.path.isdir(dirname): 
         # проверка наличия директории
         print ("Trying to obtain raw distribution for " + fname + "!")
         processor.getEnergyAngleDistribtion(fname,MT,points,normcheck=False)
-    if os.path.isdir(dirname):    
+    if os.path.isdir(dirname): 
         # теперь файл есть, если соответствующие данные JENDL есть
         E_aBase, E_nBase, distBase = \
             readNeutronEnergyDistribtion(fname, MT, points)
@@ -197,8 +231,9 @@ def neucbotIn(fname, MT, points, dE_a, dE_n):
             distRebin[i] *= XS_Rebin[i]
 
             f1 = open("../neucbot/Data/Isotopes/" + fname.split("_")[0] + "/" + fname.replace("_", "") + \
-                      "/JendlOut/outputE" + str("{:.4f}".format(E_aRebin[i]/constants.physics.MeV_to_eV)), "w")    # запись в neucbot/
-            f2 = open("./stage_2_data/" + fname + "/MT" + str(MT) + "/outputE" + str("{:.4f}".format(E_aRebin[i]/constants.physics.MeV_to_eV)), "w")    # запись в neucbot/
+                      "/JendlOut/MT" + str(MT) + "/outputE" + str("{:.4f}".format(E_aRebin[i]/constants.physics.MeV_to_eV)), "w")    # запись в neucbot/
+            f2 = open("./stage_2_data/" + fname.split("_")[0] + "/" + fname.replace("_", "") + \
+                      "/JendlOut/MT" + str(MT) + "/outputE" + str("{:.4f}".format(E_aRebin[i]/constants.physics.MeV_to_eV)), "w")    # запись локально
             
             if (minE_a > E_aRebin[i] or E_aRebin[i] > maxE_a or XS_Rebin[i] == 0):
                 f1.write("EMPTY")
@@ -218,3 +253,4 @@ def neucbotIn(fname, MT, points, dE_a, dE_n):
                             str(distRebin[i,j]*constants.physics.MeV_to_eV) + "\n")
             f1.close()
             f2.close()
+        
