@@ -191,7 +191,7 @@ def separateData(fname, MT):   # считывает из ./stage_1_data/converte
         os.mkdir("stage_1_data/reshaped/" + fname)
     file1 = open("./stage_1_data/converted/" + fname, "r")   # файл из папки stage_1_data/converted из ENDF6-reader 
     file2 = open("./stage_1_data/reshaped/" + dirname, "w")  # файл в который ведётся запись 
-# строчка выше создаёт ненужный пустой файл если данных с заданным MT нет
+    # строчка выше создаёт ненужный пустой файл если данных с заданным MT нет
     while True:
         line = file1.readline()
         # прерываем цикл, если строка пустая 
