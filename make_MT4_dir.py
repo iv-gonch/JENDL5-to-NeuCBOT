@@ -7,8 +7,7 @@
 
 from __future__ import print_function
 from __future__ import division
-import numpy as np
-from scipy import interpolate
+import numpy as np # type: ignore
 import os
 
 
