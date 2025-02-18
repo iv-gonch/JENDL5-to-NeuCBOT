@@ -4,7 +4,7 @@ __pycache__/
 *.DS_Store
 
 test/
-NeuCBOT_clear_JENDL.sh
+# NeuCBOT_clear_JENDL.sh
 
 # jendl5-a/
 stage_1_data/
