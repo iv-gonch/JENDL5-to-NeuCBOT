@@ -26,7 +26,46 @@ MT_list =  {"Li_6" : [50, 51, 52, 53],
             "Na_23": [50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78]}
 
 
-def summ_data(fname):
+def readfileXS(fname):
+    
+    i = 0
+    #!!!# Если поставить dE_a другим, то сломается #!!!#
+    column_1 = np.arange(0.0, 15.01, 0.01)
+    column_2 = np.zeros(1501)
+    
+    f = open(fname, 'r')
+    for line in f.readlines():
+        if line.startswith("#") or line == "":
+            continue
+        column_1[i] = line.split()[0]
+        column_2[i] = line.split()[1]
+        i += 1
+    f.close()
+    return column_1, column_2
+
+
+def readfileOutputE(fname):
+    
+    i = 0
+    #!!!# Если поставить dE_n другим, то сломается #!!!#
+    column_1 = np.arange(0.1, 15.1, 0.1)
+    column_2 = np.zeros(150)
+    
+    f = open(fname, 'r')
+    for line in f.readlines():
+        if line == "EMPTY": # Только для файлов "outputE..."
+            break
+        else:
+            if line.startswith("#") or line == "":
+                continue
+            column_1[i] = line.split()[0]
+            column_2[i] = line.split()[1]
+            i += 1
+    f.close()
+    return column_1, column_2
+
+
+def summ_dataXS(fname):
 
     for isotope in MT_list:
         if not os.path.isdir("./stage_2_data/" + \
@@ -38,7 +77,7 @@ def summ_data(fname):
                             isotope.replace("_", "") + \
                             "/JendlOut/MT4")
 
-        # Исходный файл и целевой файл
+        # Исходный файл (MT50) и целевой файл (MT40)
         destination_file = "./stage_2_data/" + \
                             isotope.split("_")[0] + "/" + \
                             isotope.replace("_", "") + \
@@ -48,41 +87,26 @@ def summ_data(fname):
                             isotope.replace("_", "") + \
                             "/JendlOut/MT50/" + fname
         # Копирование файла 
-        with open(source_file, 'rb') as src, open(destination_file, 'wb') as dst:
-            dst.write(src.read())
-
-
+        source_column_1, source_column_2 = readfileXS(source_file)
+        f = open(destination_file, 'w')
+        for i in range(len(source_column_1)):
+            f.write(str(source_column_1[i]) + "\t\t" + str(source_column_2[i]) + "\n")
+        # Можно добавить шапку файлу позже
+        f.close()
+        
         for MT in MT_list[isotope]: 
             if MT > 50:
-                f = open("./stage_2_data/" + \
+                fname_src = "./stage_2_data/" + \
                         isotope.split("_")[0] + "/" + \
                         isotope.replace("_", "") + \
-                        "/JendlOut/MT" + str(MT) + "/cross-section", "r") 
-                XS_src = []
-                E_a = []
+                        "/JendlOut/MT" + str(MT) + "/" + fname
+                E_a, XS_src = readfileXS(fname_src)
 
-                F = open("./stage_2_data/" + \
+                fname_dst = "./stage_2_data/" + \
                         isotope.split("_")[0] + "/" + \
                         isotope.replace("_", "") + \
-                        "/JendlOut/MT4/cross-section", "r") 
-                XS_dst = []
-
-                for line in f.readlines():
-                    if line[0] == "#":
-                        continue
-                    XS_src.append(float(line.split()[1]))
-                    E_a.append(float(line.split()[0]))
-
-                for line in F.readlines():
-                    if line[0] == "#":
-                        continue
-                    XS_dst.append(float(line.split()[1]))
-                f.close()
-                F.close()
-
-                XS_src = np.array(XS_src)
-                E_a = np.array(E_a)
-                XS_dst = np.array(XS_dst)
+                        "/JendlOut/MT4/" + fname
+                E_a, XS_dst = readfileXS(fname_dst)
 
                 XS_res = XS_src + XS_dst
 
@@ -90,7 +114,61 @@ def summ_data(fname):
                         isotope.split("_")[0] + "/" + \
                         isotope.replace("_", "") + \
                         "/JendlOut/MT4/" + fname, "w") 
-                F.write("# E_a, MeV\t\tXS, mb\n")
+
+                for i in range(len(XS_res)):
+                    F.write(str(E_a[i])  + " \t\t" + str(XS_res[i]) + "\n")
+                F.close()
+
+
+def summ_dataOutputE(fname):
+
+    for isotope in MT_list:
+        if not os.path.isdir("./stage_2_data/" + \
+                            isotope.split("_")[0] + "/" + \
+                            isotope.replace("_", "") + \
+                            "/JendlOut/MT4"):
+            os.mkdir        ("./stage_2_data/" + \
+                            isotope.split("_")[0] + "/" + \
+                            isotope.replace("_", "") + \
+                            "/JendlOut/MT4")
+
+        # Исходный файл (MT50) и целевой файл (MT40)
+        destination_file = "./stage_2_data/" + \
+                            isotope.split("_")[0] + "/" + \
+                            isotope.replace("_", "") + \
+                            "/JendlOut/MT4/" + fname
+        source_file =      "./stage_2_data/" + \
+                            isotope.split("_")[0] + "/" + \
+                            isotope.replace("_", "") + \
+                            "/JendlOut/MT50/" + fname
+        # Копирование файла 
+        source_column_1, source_column_2 = readfileOutputE(source_file)
+        f = open(destination_file, 'w')
+        for i in range(len(source_column_1)):
+            f.write(str(source_column_1[i]) + "\t\t" + str(source_column_2[i]) + "\n")
+        # Можно добавить шапку файлу позже
+        f.close()
+        
+        for MT in MT_list[isotope]: 
+            if MT > 50:
+                fname_src = "./stage_2_data/" + \
+                        isotope.split("_")[0] + "/" + \
+                        isotope.replace("_", "") + \
+                        "/JendlOut/MT" + str(MT) + "/" + fname
+                E_a, XS_src = readfileOutputE(fname_src)
+
+                fname_dst = "./stage_2_data/" + \
+                        isotope.split("_")[0] + "/" + \
+                        isotope.replace("_", "") + \
+                        "/JendlOut/MT4/" + fname
+                E_a, XS_dst = readfileOutputE(fname_dst)
+
+                XS_res = XS_src + XS_dst
+
+                F = open("./stage_2_data/" + \
+                        isotope.split("_")[0] + "/" + \
+                        isotope.replace("_", "") + \
+                        "/JendlOut/MT4/" + fname, "w") 
 
                 for i in range(len(XS_res)):
                     F.write(str(E_a[i])  + " \t\t" + str(XS_res[i]) + "\n")
@@ -98,13 +176,14 @@ def summ_data(fname):
 
 
 def main():
-    summ_data("cross-section")
+    summ_dataXS("cross-section")
 
     dirname = "./stage_2_data/C/C13/JendlOut/MT50"
     dirLen = len([name for name in os.listdir(dirname)])    # число файлов в папке
     for i in range(dirLen - 1):
         fname = "outputE" + str("{:.4f}".format(i/100))
-        summ_data(fname)
+        # !!! Файлы могут содержать только слово "EMPTY". Необходимо учесть !!!
+        summ_dataOutputE(fname)
 
 if __name__ == "__main__":
     main()
