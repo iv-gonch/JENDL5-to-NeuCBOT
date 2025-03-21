@@ -1,6 +1,9 @@
 #!/bin/bash 
 
-cd $HOME/work/alpha\,n\ stuff/neucbot/Data/Isotopes
+rm -r stage_1_data/
+rm -r stage_2_data/
+
+cd ../neucbot/Data/Isotopes
 
 rm -r Al/Al27/JendlOut 
 rm -r B/B10/JendlOut    B/B11/JendlOut 

@@ -96,7 +96,7 @@ def separateData(fname, MT):   # считывает из ./stage_1_data/converte
     # ==================  запись коэффициентов Лежандра  ================== #
     MF = int(6) 
     if not os.path.isfile("stage_1_data/converted/" + fname):    # проверка наличия конвертированного файла
-        print("There is no ", fname, "file in ./stage_1_data/converted!", file=sys.stdout)
+        print("There is no", fname, "file in ./stage_1_data/converted!", file=sys.stdout)
         convertENDF(fname)
 
     f = open("stage_1_data/converted/" + fname)

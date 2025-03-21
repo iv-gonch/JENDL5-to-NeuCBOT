@@ -49,23 +49,33 @@ def RebinXS(fname, MT, dE_a):
     XS_Rebin[minBinEa:maxBinEa+1] = \
         E_nFunc(E_aRebin[minBinEa:maxBinEa+1])  # заполняем сечения с равным шагом по энергии
     f.close()
-    
+
+    if not os.path.isdir("../neucbot/Data/Isotopes/" + \
+                            fname.split("_")[0] + "/"):   
+        os.mkdir(        "../neucbot/Data/Isotopes/" + \
+                            fname.split("_")[0] + "/")   
+    if not os.path.isdir("../neucbot/Data/Isotopes/" + \
+                            fname.split("_")[0] + "/" + \
+                            fname.replace("_", "")):
+        os.mkdir(        "../neucbot/Data/Isotopes/" + \
+                            fname.split("_")[0] + "/" + \
+                            fname.replace("_", ""))  
     if not os.path.isdir("../neucbot/Data/Isotopes/" + \
                             fname.split("_")[0] + "/" + \
                             fname.replace("_", "") + \
                             "/JendlOut"):   
-        os.mkdir("../neucbot/Data/Isotopes/" + \
-                    fname.split("_")[0] + "/" + \
-                    fname.replace("_", "") + \
-                    "/JendlOut")
+        os.mkdir(        "../neucbot/Data/Isotopes/" + \
+                            fname.split("_")[0] + "/" + \
+                            fname.replace("_", "") + \
+                            "/JendlOut")
     if not os.path.isdir("../neucbot/Data/Isotopes/" + \
                             fname.split("_")[0] + "/" + \
                             fname.replace("_", "") + \
                             "/JendlOut/MT" + str(MT)):   
-        os.mkdir("../neucbot/Data/Isotopes/" + \
-                    fname.split("_")[0] + "/" + \
-                    fname.replace("_", "") + \
-                    "/JendlOut/MT" + str(MT))
+        os.mkdir(        "../neucbot/Data/Isotopes/" + \
+                            fname.split("_")[0] + "/" + \
+                            fname.replace("_", "") + \
+                            "/JendlOut/MT" + str(MT))
     
     if not os.path.isdir("./stage_2_data/"):   
         os.mkdir(        "./stage_2_data/")
@@ -113,7 +123,7 @@ def RebinXS(fname, MT, dE_a):
     f1.close()
     f2.close()
 
-    return XS_Rebin*constants.physics.b_to_mb # ? правильно ли умножится? вроде норм тк в JENDL сечения в б а надо в мб
+    return XS_Rebin*constants.physics.b_to_mb 
 
 
 def interpolation(E_aBase, E_nBase, distBase, points, dE_a, dE_n):

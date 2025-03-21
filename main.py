@@ -24,7 +24,7 @@ MT_list =  {"Li_6" : [50, 51, 52, 53],
 def main():   # как хотелось бы сделать
     # значения по умолчанию: 
     fname = ""
-    # MT = int(50)        # тип реакции (см. манула ENDF6)
+    # MT = int(50)        # тип реакции (см. мануал ENDF6)
     points = int(101)   # количество точек в первичных функциях распределения
     dE_a = 1e4          # размер бина по энергии альфа-частицы, eV
     dE_n = 1e5          # размер бина по энергии нейтрона, eV
@@ -32,14 +32,14 @@ def main():   # как хотелось бы сделать
     for arg in sys.argv:
         # if arg == "-MT":
             # MT      = int(sys.argv[sys.argv.index(arg)+1])
-        if arg == "-points":
-            points  = int(sys.argv[sys.argv.index(arg)+1])
-        if arg == "-dE_a":
-            dE_a    = int(sys.argv[sys.argv.index(arg)+1])
-        if arg == "-dE_n":
-            dE_n    = int(sys.argv[sys.argv.index(arg)+1])
-        if arg == "-nucleus":
-            fname   = str(sys.argv[sys.argv.index(arg)+1])
+        if arg == "--points":
+            points = int(sys.argv[sys.argv.index(arg)+1])
+        if arg == "--dE_a":
+            dE_a   = int(sys.argv[sys.argv.index(arg)+1])
+        if arg == "--dE_n":
+            dE_n   = int(sys.argv[sys.argv.index(arg)+1])
+        if arg == "--nucleus":
+            fname  = str(sys.argv[sys.argv.index(arg)+1])
             for MT in MT_list[fname]:
                 print("Trying to insert into NeuCBOT " + fname + " data for (a,n" + str(MT-50) + ")-reaction.", file=sys.stdout)
                 adjuster.neucbotIn(fname, MT, points, dE_a, dE_n)   # [dE_a] = [dE_n] = eV
