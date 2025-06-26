@@ -85,23 +85,41 @@
 
 # ============== start! ============== #
 
+echo ""; 
 echo "Start!"; echo "" 
 
-python3 ./main.py --nucleus Li_6  &&
-python3 ./main.py --nucleus Li_7  &&
-python3 ./main.py --nucleus Be_9  &&
-python3 ./main.py --nucleus B_10  &&
-python3 ./main.py --nucleus B_11  &&
-python3 ./main.py --nucleus C_12  &&
-python3 ./main.py --nucleus C_13  &&
-python3 ./main.py --nucleus N_14  &&
-python3 ./main.py --nucleus N_15  &&
-python3 ./main.py --nucleus O_17  &&
-python3 ./main.py --nucleus O_18  &&
-python3 ./main.py --nucleus F_19  &&
-python3 ./main.py --nucleus Na_23 &&
+python3 ./main.py --nucleus Li_6  &
+wait
+python3 ./main.py --nucleus Li_7  &
+wait
+python3 ./main.py --nucleus Be_9  &
+wait
+python3 ./main.py --nucleus B_10  &
+wait
+python3 ./main.py --nucleus B_11  &
+wait
+python3 ./main.py --nucleus C_12  &
+wait
+python3 ./main.py --nucleus C_13  &
+wait
+python3 ./main.py --nucleus N_14  &
+wait
+python3 ./main.py --nucleus N_15  &
+wait
+python3 ./main.py --nucleus O_17  &
+wait
+python3 ./main.py --nucleus O_18  &
+wait
+python3 ./main.py --nucleus F_19  &
+wait
+python3 ./main.py --nucleus Na_23 &
+wait
 
-echo "Done!"; echo "" 
+# echo ""; echo "Removing intermediate data in /stage_1_data/" 
+# rm -rf ./stage_1_data/
+
+echo ""; echo "Done!"; 
+echo ""
 
 # ============== done!! ============== #
 

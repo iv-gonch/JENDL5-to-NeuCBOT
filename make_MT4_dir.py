@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 # финальный этап работы ENDF6reader. 
@@ -7,11 +6,11 @@
 
 from __future__ import print_function
 from __future__ import division
-import numpy as np # type: ignore
+import numpy as np 
 import os
 
-
-MT_list =  {"Li_6" : [50, 51, 52, 53], 
+# Add 91 for continuum energy level 
+MT_list =  {"Li_6" : [50, 51, 52, 53],
             "Li_7" : [50, 51, 52, 53, 54], 
             "Be_9" : [50, 51, 52], 
             "B_10" : [50, 51, 52, 53, 54], 
@@ -23,7 +22,7 @@ MT_list =  {"Li_6" : [50, 51, 52, 53],
             "O_17" : [50, 51, 52, 53], 
             "O_18" : [50, 51, 52, 53, 54], 
             "F_19" : [50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77], 
-            "Na_23": [50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78]}
+            "Na_23": [50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78]}  
 
 
 def readfileXS(fname):
@@ -77,7 +76,7 @@ def summ_dataXS(fname):
                             isotope.replace("_", "") + \
                             "/JendlOut/MT4")
 
-        # Исходный файл (MT50) и целевой файл (MT40)
+        # Исходный файл (MT50) и целевой файл (MT4)
         destination_file = "./stage_2_data/" + \
                             isotope.split("_")[0] + "/" + \
                             isotope.replace("_", "") + \

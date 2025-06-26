@@ -13,3 +13,4 @@ tar -czvf  N.tar.gz     N/
 tar -cvjf  O.tar.bz2    O/
 tar -cvjf Na.tar.bz2    Na/
 tar -cvjf  F.tar.bz2    F/
+cd ../
