@@ -103,10 +103,10 @@ def RebinXS(fname, MT, dE_a):
                             fname.replace("_", "") + \
                             "/JendlOut/MT" + str(MT))
         
-    f1 = open("../neucbot/Data/Isotopes/" + \
-                fname.split("_")[0] + "/" + \
-                fname.replace("_", "") + \
-                "/JendlOut/MT" + str(MT) + "/cross-section", "w")
+    # f1 = open("../neucbot/Data/Isotopes/" + \
+    #             fname.split("_")[0] + "/" + \
+    #             fname.replace("_", "") + \
+    #             "/JendlOut/MT" + str(MT) + "/cross-section", "w")
     # ../neucbot/Data/Isotopes/C/C13/JendlOut/MT50/XS
     
     f2 = open("./stage_2_data/" + \
@@ -115,15 +115,15 @@ def RebinXS(fname, MT, dE_a):
                 "/JendlOut/MT" + str(MT) + "/cross-section", "w")
     # ./stage_2_data/C/C13/JendlOut/MT50/XS
     
-    f1.write("# E_a, MeV\t\tXS, mb\n")
+    # f1.write("# E_a, MeV\t\tXS, mb\n")
     f2.write("# E_a, MeV\t\tXS, mb\n")
 
     for i in range(len(E_aRebin)):
-        f1.write(str(E_aRebin[i]/constants.physics.MeV_to_eV) + " \t\t" + 
-                 str(XS_Rebin[i]*constants.physics.b_to_mb) + "\n")    # E_a, Mev   XS, mb
+        # f1.write(str(E_aRebin[i]/constants.physics.MeV_to_eV) + " \t\t" + 
+        #          str(XS_Rebin[i]*constants.physics.b_to_mb) + "\n")    # E_a, Mev   XS, mb
         f2.write(str(E_aRebin[i]/constants.physics.MeV_to_eV) + " \t\t" + 
                  str(XS_Rebin[i]*constants.physics.b_to_mb) + "\n")    # E_a, Mev   XS, mb
-    f1.close()
+    # f1.close()
     f2.close()
 
     return XS_Rebin*constants.physics.b_to_mb 
@@ -244,11 +244,11 @@ def neucbotIn(fname, MT, points, dE_a, dE_n):
         for i in range(newDirLength):
             distRebin[i] *= XS_Rebin[i]
 
-            f1 = open("../neucbot/Data/Isotopes/" + 
-                      fname.split("_")[0] + "/" + 
-                      fname.replace("_", "") + \
-                      "/JendlOut/MT" + str(MT) + "/outputE" + 
-                      str("{:.4f}".format(E_aRebin[i]/constants.physics.MeV_to_eV)), "w")    # запись в neucbot/
+            # f1 = open("../neucbot/Data/Isotopes/" + 
+            #           fname.split("_")[0] + "/" + 
+            #           fname.replace("_", "") + \
+            #           "/JendlOut/MT" + str(MT) + "/outputE" + 
+            #           str("{:.4f}".format(E_aRebin[i]/constants.physics.MeV_to_eV)), "w")    # запись в neucbot/
             f2 = open("./stage_2_data/" + 
                       fname.split("_")[0] + "/" + 
                       fname.replace("_", "") + \
@@ -256,20 +256,20 @@ def neucbotIn(fname, MT, points, dE_a, dE_n):
                       str("{:.4f}".format(E_aRebin[i]/constants.physics.MeV_to_eV)), "w")    # запись локально
             
             if (minE_a > E_aRebin[i] or E_aRebin[i] > maxE_a or XS_Rebin[i] == 0):
-                f1.write("EMPTY")
+                # f1.write("EMPTY")
                 f2.write("EMPTY")
             else:    
-                f1.write("# Incident particle energy (MeV) = \n# " + 
-                         str(E_aRebin[i]/constants.physics.MeV_to_eV) + "\n#\n" +\
-                         "# En.lab,MeV distribution\n")
+                # f1.write("# Incident particle energy (MeV) = \n# " + 
+                #          str(E_aRebin[i]/constants.physics.MeV_to_eV) + "\n#\n" +\
+                #          "# En.lab,MeV distribution\n")
                 f2.write("# Incident particle energy (MeV) = \n# " + 
                          str(E_aRebin[i]/constants.physics.MeV_to_eV) + "\n#\n" +\
                          "# En.lab,MeV distribution\n")
                 for j in range(newArrayLength): 
-                    f1.write(str("{:11.6f}".format(E_nRebin[j]/constants.physics.MeV_to_eV)) + "  " + \
-                            str(distRebin[i,j]*constants.physics.MeV_to_eV) + "\n")   
+                    # f1.write(str("{:11.6f}".format(E_nRebin[j]/constants.physics.MeV_to_eV)) + "  " + \
+                    #         str(distRebin[i,j]*constants.physics.MeV_to_eV) + "\n")   
                     # перевод 1/эВ -> 1/МэВ для сохранения нормировки
                     f2.write(str("{:11.6f}".format(E_nRebin[j]/constants.physics.MeV_to_eV)) + "  " + \
                             str(distRebin[i,j]*constants.physics.MeV_to_eV) + "\n")
-            f1.close()
+            # f1.close()
             f2.close()
