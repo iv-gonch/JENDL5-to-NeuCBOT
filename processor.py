@@ -180,7 +180,7 @@ def getEnergyAngleDistribtion(fname, MT, points, normcheck):
     E_in = []   # массив энергий налетающих альфа частиц
     Coeff = []  # будущий двумерный массив коэффициентов Лежандра
 
-#========= сохраняем данный из файлов в массивы E_in, Coeff,=========#
+#========= сохраняем данные из файлов в массивы E_in, Coeff,=========#
 
     if not os.path.isdir("stage_1_data/reshaped/" + fname + "/MF6_MT" + str(MT)):  # проверка наличия директории
         converter.separateData(fname, MT)
